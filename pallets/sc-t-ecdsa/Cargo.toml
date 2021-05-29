@@ -27,3 +27,11 @@ prometheus = { package = "substrate-prometheus-endpoint", git = "https://github.
 
 # Threshold ECDSA
 multi-party-ecdsa = { git = "https://github.com/Polkadex-Substrate/multi-party-ecdsa.git" }
+curv = {git = "https://github.com/Polkadex-Substrate/curv.git", default-features = false, version = "0.7"}
+round-based = { version = "0.1.0", features = [] }
+paillier = { git = "https://github.com/Polkadex-Substrate/rust-paillier"}
+zk-paillier = { git = "https://github.com/Polkadex-Substrate/zk-paillier"}
+serde = { version = "1.0", features = ["derive"] }
+
+[dev-dependencies]
+round-based = { version = "0.1.0", features = ["dev"] }
