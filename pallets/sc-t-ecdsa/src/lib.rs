@@ -1,3 +1,6 @@
 mod gossip;
-mod worker;
 mod round;
+mod worker;
+
+#[cfg(test)]
+mod test;
