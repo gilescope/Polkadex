@@ -1,0 +1,29 @@
+[package]
+name = "thea-primitives"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+codec = { version = "2.0.0", package = "parity-scale-codec", default-features = false, features = ["derive"] }
+
+sp-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
+sp-application-crypto = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
+sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
+sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
+
+[dev-dependencies]
+hex-literal = "0.3"
+
+[features]
+default = ["std"]
+std = [
+    "codec/std",
+    "sp-api/std",
+    "sp-application-crypto/std",
+    "sp-core/std",
+    "sp-runtime/std",
+    "sp-std/std",
+]

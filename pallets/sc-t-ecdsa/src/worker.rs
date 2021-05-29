@@ -1,0 +1,1 @@
+use multi_party_ecdsa::protocols::multi_party_ecdsa::gg_2020;
