@@ -7,25 +7,28 @@ edition = "2018"
 
 [dependencies]
 futures = "0.3"
-log = "0.4"
 hex = "0.4"
-codec = { version = "2.0.0", package = "parity-scale-codec", features = ["derive"] }
+log = "0.4"
 parking_lot = "0.11"
 thiserror = "1.0"
-thea-primitives = { path = "../thea-primitives" }
-sp-application-crypto = { version = "3.0.0", git = "https://github.com/paritytech/substrate.git" }
-sp-blockchain = { version = "3.0.0", git = "https://github.com/paritytech/substrate.git" }
-sp-consensus = { version = "0.9.0", git = "https://github.com/paritytech/substrate.git" }
-sp-core = { version = "3.0.0", git = "https://github.com/paritytech/substrate.git" }
-sp-api = { version = "3.0.0", git = "https://github.com/paritytech/substrate.git" }
-sp-runtime = { version = "3.0.0", git = "https://github.com/paritytech/substrate.git" }
-sp-keystore = { version = "0.9.0", git = "https://github.com/paritytech/substrate.git" }
-sc-keystore = { version = "3.0.0", git = "https://github.com/paritytech/substrate.git" }
-sc-client-api = { version = "3.0.0", git = "https://github.com/paritytech/substrate.git" }
-sc-network = { version = "0.9.0", git = "https://github.com/paritytech/substrate.git" }
-sc-network-gossip = { version = "0.9.0", git = "https://github.com/paritytech/substrate.git" }
+
+codec = { version = "2.0.0", package = "parity-scale-codec", features = ["derive"] }
 prometheus = { package = "substrate-prometheus-endpoint", git = "https://github.com/paritytech/substrate", branch = "master" }
-sp-arithmetic = { version = "3.0.0", git = "https://github.com/paritytech/substrate.git" }
+
+sp-api = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sp-application-crypto = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sp-arithmetic = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sp-consensus = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sp-keystore = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sp-utils = { git = "https://github.com/paritytech/substrate", branch = "master" }
+
+sc-client-api = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sc-keystore = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sc-network = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sc-network-gossip = { git = "https://github.com/paritytech/substrate", branch = "master" }
 
 # Threshold ECDSA
 multi-party-ecdsa = { git = "https://github.com/Polkadex-Substrate/multi-party-ecdsa.git" }
@@ -35,6 +38,7 @@ paillier = { git = "https://github.com/Polkadex-Substrate/rust-paillier" }
 zk-paillier = { git = "https://github.com/Polkadex-Substrate/zk-paillier" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.64"
+thea-primitives = { path = "../thea-primitives" }
 
 [dev-dependencies]
 round-based = { version = "0.1.0", features = ["dev"] }

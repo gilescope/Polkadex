@@ -1,14 +1,14 @@
+use frame_benchmarking::frame_support::PalletId;
 use sc_service::ChainType;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_core::{sr25519, Pair, Public};
 use sp_finality_grandpa::AuthorityId as GrandpaId;
 use sp_runtime::traits::{AccountIdConversion, IdentifyAccount, Verify};
-
-use frame_benchmarking::frame_support::PalletId;
-use node_polkadex_runtime::{
+use thea_node_runtime::{
     AccountId, AuraConfig, BalancesConfig, GenesisConfig, GrandpaConfig, Signature, SudoConfig,
-    SystemConfig, WASM_BINARY,
+    SystemConfig, TheaConfig, WASM_BINARY,
 };
+use thea_primitives::ecdsa::AuthorityId as TheaId;
 
 // The URL for the telemetry server.
 // const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
@@ -34,8 +34,12 @@ where
 }
 
 /// Generate an Aura authority key.
-pub fn authority_keys_from_seed(s: &str) -> (AuraId, GrandpaId) {
-    (get_from_seed::<AuraId>(s), get_from_seed::<GrandpaId>(s))
+pub fn authority_keys_from_seed(s: &str) -> (AuraId, GrandpaId, TheaId) {
+    (
+        get_from_seed::<AuraId>(s),
+        get_from_seed::<GrandpaId>(s),
+        get_from_seed::<TheaId>(s),
+    )
 }
 
 pub fn development_config() -> Result<ChainSpec, String> {
@@ -132,7 +136,7 @@ pub const OCEXGenesisAccount: PalletId = PalletId(*b"polka/ga");
 /// Configure initial storage state for FRAME modules.
 fn testnet_genesis(
     wasm_binary: &[u8],
-    initial_authorities: Vec<(AuraId, GrandpaId)>,
+    initial_authorities: Vec<(AuraId, GrandpaId, TheaId)>,
     root_key: AccountId,
     endowed_accounts: Vec<AccountId>,
     _enable_println: bool,
@@ -165,6 +169,9 @@ fn testnet_genesis(
         pallet_sudo: SudoConfig {
             // Assign network admin rights.
             key: root_key.clone(),
+        },
+        thea_pallet: TheaConfig {
+            authorities: initial_authorities.iter().map(|x| (x.2.clone())).collect(),
         },
     }
 }

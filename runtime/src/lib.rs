@@ -13,6 +13,7 @@ use codec::{Decode, Encode};
 use frame_system::{Config, RawOrigin};
 use pallet_grandpa::fg_primitives;
 use pallet_grandpa::{AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList};
+use thea_primitives::{ecdsa::AuthorityId as TheaId, ValidatorSet};
 // pub use polkadex_primitives::common_types::{Signature, AccountId, Balance};
 use sp_api::impl_runtime_apis;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
@@ -101,6 +102,7 @@ pub mod opaque {
         pub struct SessionKeys {
             pub aura: Aura,
             pub grandpa: Grandpa,
+            pub thea: Thea,
         }
     }
 }
@@ -285,6 +287,10 @@ impl pallet_sudo::Config for Runtime {
     type Call = Call;
 }
 
+impl thea_pallet::Config for Runtime {
+    type AuthorityId = TheaId;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
     pub enum Runtime where
@@ -297,6 +303,7 @@ construct_runtime!(
         Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
         Aura: pallet_aura::{Pallet, Config<T>},
         Grandpa: pallet_grandpa::{Pallet, Call, Storage, Config, Event},
+        Thea: thea_pallet::{Pallet, Config<T>},
         Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
         TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
         Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
@@ -438,6 +445,12 @@ impl_runtime_apis! {
             // defined our key owner proof type as a bottom type (i.e. a type
             // with no values).
             None
+        }
+    }
+
+    impl thea_primitives::TheaApi<Block, TheaId> for Runtime {
+        fn validator_set() -> ValidatorSet<TheaId> {
+            Thea::validator_set()
         }
     }
 

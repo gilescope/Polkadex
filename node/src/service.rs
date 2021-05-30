@@ -1,26 +1,26 @@
 //! Service and ServiceFactory implementation. Specialized wrapper over substrate service.
 
+use std::sync::Arc;
+use std::time::Duration;
+
 use sc_client_api::{ExecutorProvider, RemoteBackend};
 use sc_consensus_aura::{ImportQueueParams, SlotProportion, StartAuraParams};
 use sc_executor::native_executor_instance;
 pub use sc_executor::NativeExecutor;
 use sc_finality_grandpa::SharedVoterState;
-use sc_keystore::LocalKeystore;
 use sc_service::{error::Error as ServiceError, Configuration, TaskManager};
 use sc_telemetry::{Telemetry, TelemetryWorker};
 use sp_consensus::SlotData;
 use sp_consensus_aura::sr25519::AuthorityPair as AuraPair;
 use sp_inherents::InherentDataProvider;
-use std::sync::Arc;
-use std::time::Duration;
 
-use node_polkadex_runtime::{self, opaque::Block, RuntimeApi};
+use thea_node_runtime::{self, opaque::Block, RuntimeApi};
 
 // Our native executor instance.
 native_executor_instance!(
     pub Executor,
-    node_polkadex_runtime::api::dispatch,
-    node_polkadex_runtime::native_version,
+    thea_node_runtime::api::dispatch,
+    thea_node_runtime::native_version,
     frame_benchmarking::benchmarking::HostFunctions,
 );
 
@@ -28,33 +28,21 @@ type FullClient = sc_service::TFullClient<Block, RuntimeApi, Executor>;
 type FullBackend = sc_service::TFullBackend<Block>;
 type FullSelectChain = sc_consensus::LongestChain<FullBackend, Block>;
 
-pub fn new_partial(
-    config: &Configuration,
-) -> Result<
-    sc_service::PartialComponents<
-        FullClient,
-        FullBackend,
-        FullSelectChain,
-        sp_consensus::DefaultImportQueue<Block, FullClient>,
-        sc_transaction_pool::FullPool<Block, FullClient>,
-        (
-            sc_consensus_aura::AuraBlockImport<
-                Block,
-                FullClient,
-                sc_finality_grandpa::GrandpaBlockImport<
-                    FullBackend,
-                    Block,
-                    FullClient,
-                    FullSelectChain,
-                >,
-                AuraPair,
-            >,
-            sc_finality_grandpa::LinkHalf<Block, FullClient, FullSelectChain>,
-            Option<Telemetry>,
-        ),
-    >,
-    ServiceError,
-> {
+type OtherComponents = (
+    sc_finality_grandpa::GrandpaBlockImport<FullBackend, Block, FullClient, FullSelectChain>,
+    sc_finality_grandpa::LinkHalf<Block, FullClient, FullSelectChain>,
+    Option<Telemetry>,
+);
+type ServiceComponents = sc_service::PartialComponents<
+    FullClient,
+    FullBackend,
+    FullSelectChain,
+    sp_consensus::DefaultImportQueue<Block, FullClient>,
+    sc_transaction_pool::FullPool<Block, FullClient>,
+    OtherComponents,
+>;
+
+pub fn new_partial(config: &Configuration) -> Result<ServiceComponents, ServiceError> {
     if config.keystore_remote.is_some() {
         return Err(ServiceError::Other(format!(
             "Remote Keystores are not supported."
@@ -101,16 +89,16 @@ pub fn new_partial(
         telemetry.as_ref().map(|x| x.handle()),
     )?;
 
-    let aura_block_import = sc_consensus_aura::AuraBlockImport::<_, _, _, AuraPair>::new(
-        grandpa_block_import.clone(),
-        client.clone(),
-    );
+    // let aura_block_import = sc_consensus_aura::AuraBlockImport::<_, _, _, AuraPair>::new(
+    //     grandpa_block_import.clone(),
+    //     client.clone(),
+    // );
 
     let slot_duration = sc_consensus_aura::slot_duration(&*client)?.slot_duration();
 
     let import_queue =
         sc_consensus_aura::import_queue::<AuraPair, _, _, _, _, _, _>(ImportQueueParams {
-            block_import: aura_block_import.clone(),
+            block_import: grandpa_block_import.clone(),
             justification_import: Some(Box::new(grandpa_block_import.clone())),
             client: client.clone(),
             create_inherent_data_providers: move |_, ()| async move {
@@ -141,16 +129,16 @@ pub fn new_partial(
         keystore_container,
         select_chain,
         transaction_pool,
-        other: (aura_block_import, grandpa_link, telemetry),
+        other: (grandpa_block_import, grandpa_link, telemetry),
     })
 }
 
-fn remote_keystore(_url: &String) -> Result<Arc<LocalKeystore>, &'static str> {
-    // FIXME: here would the concrete keystore be built,
-    //        must return a concrete type (NOT `LocalKeystore`) that
-    //        implements `CryptoStore` and `SyncCryptoStore`
-    Err("Remote Keystore not supported.")
-}
+// fn remote_keystore(_url: &String) -> Result<Arc<LocalKeystore>, &'static str> {
+//     // FIXME: here would the concrete keystore be built,
+//     //        must return a concrete type (NOT `LocalKeystore`) that
+//     //        implements `CryptoStore` and `SyncCryptoStore`
+//     Err("Remote Keystore not supported.")
+// }
 
 /// Builds a new service for a full client.
 pub fn new_full(mut config: Configuration) -> Result<TaskManager, ServiceError> {
@@ -165,17 +153,17 @@ pub fn new_full(mut config: Configuration) -> Result<TaskManager, ServiceError> 
         other: (block_import, grandpa_link, mut telemetry),
     } = new_partial(&config)?;
 
-    if let Some(url) = &config.keystore_remote {
-        match remote_keystore(url) {
-            Ok(k) => keystore_container.set_remote_keystore(k),
-            Err(e) => {
-                return Err(ServiceError::Other(format!(
-                    "Error hooking up remote keystore for {}: {}",
-                    url, e
-                )))
-            }
-        };
-    }
+    // if let Some(url) = &config.keystore_remote {
+    //     match remote_keystore(url) {
+    //         Ok(k) => keystore_container.set_remote_keystore(k),
+    //         Err(e) => {
+    //             return Err(ServiceError::Other(format!(
+    //                 "Error hooking up remote keystore for {}: {}",
+    //                 url, e
+    //             )))
+    //         }
+    //     };
+    // }
 
     config
         .network
@@ -187,7 +175,7 @@ pub fn new_full(mut config: Configuration) -> Result<TaskManager, ServiceError> 
         .extra_sets
         .push(thea_client::thea_peers_set_config());
 
-    let (network, network_status_sinks, system_rpc_tx, network_starter) =
+    let (network, system_rpc_tx, network_starter) =
         sc_service::build_network(sc_service::BuildNetworkParams {
             config: &config,
             client: client.clone(),
@@ -239,7 +227,6 @@ pub fn new_full(mut config: Configuration) -> Result<TaskManager, ServiceError> 
         on_demand: None,
         remote_blockchain: None,
         backend: backend.clone(),
-        network_status_sinks,
         system_rpc_tx,
         config,
         telemetry: telemetry.as_mut(),
@@ -329,8 +316,8 @@ pub fn new_full(mut config: Configuration) -> Result<TaskManager, ServiceError> 
         name: Some(name),
         observer_enabled: false,
         keystore,
-        is_authority: role.is_authority(),
         telemetry: telemetry.as_ref().map(|x| x.handle()),
+        local_role: role,
     };
 
     if enable_grandpa {
@@ -413,16 +400,16 @@ pub fn new_light(mut config: Configuration) -> Result<TaskManager, ServiceError>
         telemetry.as_ref().map(|x| x.handle()),
     )?;
 
-    let aura_block_import = sc_consensus_aura::AuraBlockImport::<_, _, _, AuraPair>::new(
-        grandpa_block_import.clone(),
-        client.clone(),
-    );
+    // let aura_block_import = sc_consensus_aura::AuraBlockImport::<_, _, _, AuraPair>::new(
+    //     grandpa_block_import.clone(),
+    //     client.clone(),
+    // );
 
     let slot_duration = sc_consensus_aura::slot_duration(&*client)?.slot_duration();
 
     let import_queue =
         sc_consensus_aura::import_queue::<AuraPair, _, _, _, _, _, _>(ImportQueueParams {
-            block_import: aura_block_import.clone(),
+            block_import: grandpa_block_import.clone(),
             justification_import: Some(Box::new(grandpa_block_import.clone())),
             client: client.clone(),
             create_inherent_data_providers: move |_, ()| async move {
@@ -443,7 +430,7 @@ pub fn new_light(mut config: Configuration) -> Result<TaskManager, ServiceError>
             telemetry: telemetry.as_ref().map(|x| x.handle()),
         })?;
 
-    let (network, network_status_sinks, system_rpc_tx, network_starter) =
+    let (network, system_rpc_tx, network_starter) =
         sc_service::build_network(sc_service::BuildNetworkParams {
             config: &config,
             client: client.clone(),
@@ -474,7 +461,6 @@ pub fn new_light(mut config: Configuration) -> Result<TaskManager, ServiceError>
         keystore: keystore_container.sync_keystore(),
         backend,
         network,
-        network_status_sinks,
         system_rpc_tx,
         telemetry: telemetry.as_mut(),
     })?;

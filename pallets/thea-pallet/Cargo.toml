@@ -6,13 +6,18 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-thea-primitives = { path = "../thea-primitives" }
+thea-primitives = { path = "../thea-primitives", default-features=false}
 codec = { version = "2.0.0", package = "parity-scale-codec", default-features = false, features = ["derive"] }
-sp-runtime = { version = "3.0.0", git = "https://github.com/paritytech/substrate.git", default-features = false }
-sp-std = { version = "3.0.0", git = "https://github.com/paritytech/substrate.git", default-features = false }
-frame-support = { version = "3.0.0", git = "https://github.com/paritytech/substrate.git", default-features = false }
-frame-system = { version = "3.0.0", git = "https://github.com/paritytech/substrate.git", default-features = false }
-pallet-session = { version = "3.0.0", git = "https://github.com/paritytech/substrate.git", default-features = false }
+serde = { version = "1.0.126", optional = true }
+
+frame-support = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
+frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
+
+sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
+sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
+
+pallet-session = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
+
 [features]
 default = ["std"]
 std = [
