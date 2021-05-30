@@ -1,0 +1,24 @@
+[package]
+name = "thea-pallet"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+thea-primitives = { path = "../thea-primitives" }
+codec = { version = "2.0.0", package = "parity-scale-codec", default-features = false, features = ["derive"] }
+sp-runtime = { version = "3.0.0", git = "https://github.com/paritytech/substrate.git", default-features = false }
+sp-std = { version = "3.0.0", git = "https://github.com/paritytech/substrate.git", default-features = false }
+frame-support = { version = "3.0.0", git = "https://github.com/paritytech/substrate.git", default-features = false }
+frame-system = { version = "3.0.0", git = "https://github.com/paritytech/substrate.git", default-features = false }
+pallet-session = { version = "3.0.0", git = "https://github.com/paritytech/substrate.git", default-features = false }
+[features]
+default = ["std"]
+std = [
+    "codec/std",
+    "sp-runtime/std",
+    "sp-std/std",
+    "thea-primitives/std",
+    "frame-support/std"
+]

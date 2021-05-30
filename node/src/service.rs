@@ -185,7 +185,7 @@ pub fn new_full(mut config: Configuration) -> Result<TaskManager, ServiceError> 
     config
         .network
         .extra_sets
-        .push(sc_t_ecdsa::thea_peers_set_config());
+        .push(thea_client::thea_peers_set_config());
 
     let (network, network_status_sinks, system_rpc_tx, network_starter) =
         sc_service::build_network(sc_service::BuildNetworkParams {
@@ -303,7 +303,7 @@ pub fn new_full(mut config: Configuration) -> Result<TaskManager, ServiceError> 
         None
     };
 
-    let thea_params = sc_t_ecdsa::TheaParams {
+    let thea_params = thea_client::TheaParams {
         client,
         backend,
         key_store: keystore.clone(),
@@ -317,7 +317,7 @@ pub fn new_full(mut config: Configuration) -> Result<TaskManager, ServiceError> 
     // Start the THEA bridge gadget.
     task_manager.spawn_essential_handle().spawn_blocking(
         "thea-worker",
-        sc_t_ecdsa::start_thea_gadget::<_, thea_primitives::ecdsa::AuthorityPair, _, _, _>(
+        thea_client::start_thea_gadget::<_, thea_primitives::ecdsa::AuthorityPair, _, _, _>(
             thea_params,
         ),
     );
@@ -394,7 +394,7 @@ pub fn new_light(mut config: Configuration) -> Result<TaskManager, ServiceError>
     config
         .network
         .extra_sets
-        .push(sc_t_ecdsa::thea_peers_set_config());
+        .push(thea_client::thea_peers_set_config());
 
     let select_chain = sc_consensus::LongestChain::new(backend.clone());
 

@@ -4757,7 +4757,6 @@ dependencies = [
  "sc-rpc",
  "sc-rpc-api",
  "sc-service",
- "sc-t-ecdsa",
  "sc-telemetry",
  "sc-transaction-pool",
  "sp-api",
@@ -4774,6 +4773,7 @@ dependencies = [
  "structopt",
  "substrate-build-script-utils",
  "substrate-frame-rpc-system",
+ "thea-client",
  "thea-primitives",
 ]
 
@@ -6392,39 +6392,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "sc-t-ecdsa"
-version = "0.1.0"
-dependencies = [
- "curv",
- "futures 0.3.14",
- "hex",
- "log",
- "multi-party-ecdsa",
- "paillier",
- "parity-scale-codec",
- "parking_lot 0.11.1",
- "round-based",
- "sc-client-api",
- "sc-keystore",
- "sc-network",
- "sc-network-gossip",
- "serde",
- "serde_json",
- "sp-api",
- "sp-application-crypto",
- "sp-arithmetic",
- "sp-blockchain",
- "sp-consensus",
- "sp-core",
- "sp-keystore",
- "sp-runtime",
- "substrate-prometheus-endpoint 0.9.0 (git+https://github.com/paritytech/substrate?branch=master)",
- "thea-primitives",
- "thiserror",
- "zk-paillier",
-]
-
-[[package]]
 name = "sc-telemetry"
 version = "3.0.0"
 source = "git+https://github.com/paritytech/substrate.git#e5437efefa82bd8eb567f1245f0a7443ac4e4fe7"
@@ -7868,6 +7835,52 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d326610f408c7a4eb6f51c37c330e496b08506c9457c9d34287ecc38809fb060"
 dependencies = [
  "unicode-width",
+]
+
+[[package]]
+name = "thea-client"
+version = "0.1.0"
+dependencies = [
+ "curv",
+ "futures 0.3.14",
+ "hex",
+ "log",
+ "multi-party-ecdsa",
+ "paillier",
+ "parity-scale-codec",
+ "parking_lot 0.11.1",
+ "round-based",
+ "sc-client-api",
+ "sc-keystore",
+ "sc-network",
+ "sc-network-gossip",
+ "serde",
+ "serde_json",
+ "sp-api",
+ "sp-application-crypto",
+ "sp-arithmetic",
+ "sp-blockchain",
+ "sp-consensus",
+ "sp-core",
+ "sp-keystore",
+ "sp-runtime",
+ "substrate-prometheus-endpoint 0.9.0 (git+https://github.com/paritytech/substrate?branch=master)",
+ "thea-primitives",
+ "thiserror",
+ "zk-paillier",
+]
+
+[[package]]
+name = "thea-pallet"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "pallet-session",
+ "parity-scale-codec",
+ "sp-runtime",
+ "sp-std",
+ "thea-primitives",
 ]
 
 [[package]]
