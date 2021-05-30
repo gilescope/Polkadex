@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use std::fmt::Debug;
 // This is file is modified from beefy-gadget from Parity Technologies (UK) Ltd.
 use std::marker::PhantomData;
 
 use codec::Decode;
+use log::{debug, error, trace, warn};
 use parking_lot::RwLock;
 use sc_network::{ObservedRole, PeerId};
 use sc_network_gossip::{
@@ -26,7 +28,6 @@ use sc_network_gossip::{
 };
 use sp_core::Pair;
 use sp_runtime::traits::{Block, Hash, Header, NumberFor};
-use std::fmt::Debug;
 
 // Limit THEA gossip by keeping only a bound number of voting rounds alive.
 const MAX_LIVE_GOSSIP_ROUNDS: usize = 5;
@@ -97,21 +98,45 @@ where
 {
     fn validate(
         &self,
-        context: &mut dyn GossipValidatorContext<B>,
+        _context: &mut dyn GossipValidatorContext<B>,
         sender: &PeerId,
-        data: &[u8],
+        _data: &[u8],
     ) -> GossipValidationResult<<B as Block>::Hash> {
-        todo!()
+        // if let Ok(msg) = VoteMessage::<MmrRootHash, NumberFor<B>, P::Public, P::Signature>::decode(&mut data) {
+        //     if P::verify(&msg.signature, &msg.commitment.encode(), &msg.id) {
+        //         return GossipValidationResult::ProcessAndKeep(self.topic);
+        //     } else {
+        //         // TODO: report peer
+        //         debug!(target: "beefy", "🥩 Bad signature on message: {:?}, from: {:?}", msg, sender);
+        //     }
+        // }
+        // TODO: Verify THEA protocol message signatures here
+        trace!(target: "thea", "🥩 Validating message by sender: {:?}", sender);
+        GossipValidationResult::Discard
     }
 
     fn message_expired<'a>(&'a self) -> Box<dyn FnMut(<B as Block>::Hash, &[u8]) -> bool> {
         let live_rounds = self.live_rounds.read();
-        Box::new(move |_topic, mut data| todo!())
+        Box::new(move |topic, mut data| {
+            // TODO: Implement message expiry check
+            trace!(target: "thea", "🥩 Checking message expiry: Topic :{:?}", topic);
+            false
+        })
     }
 
     fn message_allowed<'a>(
         &'a self,
     ) -> Box<dyn FnMut(&PeerId, MessageIntent, &<B as Block>::Hash, &[u8]) -> bool> {
-        todo!()
+        Box::new(move |who, intent, topic, mut _data| {
+            // let message = match VoteMessage::<MmrRootHash, NumberFor<B>, P::Public, P::Signature>::decode(&mut data) {
+            //     Ok(vote) => vote,
+            //     Err(_) => return true,
+            // };
+            //
+            // BeefyGossipValidator::<B, P>::is_live(&live_rounds, message.commitment.block_number)
+            // TODO: Implement checks for egress thea gossip messages
+            trace!(target: "thea", "🥩 Sending message out: Topic :{:?}, Who: {:?}", topic,who);
+            true
+        })
     }
 }
