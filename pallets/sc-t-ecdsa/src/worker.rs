@@ -24,12 +24,15 @@ use std::{
 
 use codec::{Codec, Decode, Encode};
 use futures::{future, FutureExt, StreamExt};
+use hex::ToHex;
 use log::{debug, error, trace, warn};
 use parking_lot::Mutex;
+use round_based::Msg;
 use sc_client_api::{Backend, FinalityNotification, FinalityNotifications};
 use sc_network_gossip::GossipEngine;
 use sp_api::BlockId;
 use sp_application_crypto::{AppPublic, Public};
+use sp_arithmetic::traits::AtLeast32Bit;
 use sp_core::Pair;
 use sp_keystore::{SyncCryptoStore, SyncCryptoStorePtr};
 use sp_runtime::{
@@ -38,17 +41,17 @@ use sp_runtime::{
     SaturatedConversion,
 };
 
-use hex::ToHex;
-use sp_arithmetic::traits::AtLeast32Bit;
+use thea_primitives::{
+    ConsensusLog, TheaApi, ValidatorSet, GENESIS_AUTHORITY_SET_ID, KEY_TYPE, THEA_ENGINE_ID,
+};
 
 use crate::{
     gossip::{topic, TheaGossipValidator},
     metric_inc, metric_set,
     metrics::Metrics,
+    mpc::ProtocolMessage,
     Client,
 };
-
-use thea_primitives::{TheaApi, ValidatorSet, GENESIS_AUTHORITY_SET_ID, KEY_TYPE, THEA_ENGINE_ID};
 
 pub(crate) struct WorkerParams<B, P, BE, C>
 where
@@ -147,4 +150,86 @@ where
             _pair: PhantomData,
         }
     }
+}
+
+impl<B, C, BE, P> TheaWorker<B, C, BE, P>
+where
+    B: Block,
+    BE: Backend<B>,
+    P: Pair,
+    P::Public: AppPublic,
+    P::Signature: Clone + Codec + Debug + PartialEq + TryFrom<Vec<u8>>,
+    C: Client<B, BE, P>,
+    C::Api: TheaApi<B, P::Public>,
+{
+    // TODO: Implement the threshold ecdsa logic here
+
+    pub fn handle_finality_notification(&mut self, notification: FinalityNotification<B>) {
+        trace!(target: "thea", "🥩 Got New Finality notification: {:?}", notification.header.number());
+    }
+
+    pub fn handle_protocol_message(&mut self, message: Msg<ProtocolMessage>) {
+        trace!(target: "thea", "🥩 Got New Protocol Message: Sender {:?}, Receiver: {:?}", message.sender,message.receiver);
+    }
+    pub(crate) async fn run(mut self) {
+        let mut thea_protocol_messages = Box::pin(
+            self.gossip_engine
+                .lock()
+                .messages_for(topic::<B>())
+                .filter_map(|notification| async move {
+                    trace!(target: "thea", "🥩 Got Protocol message on wire: {:?}", notification);
+
+                    // VoteMessage::<MmrRootHash, NumberFor<B>, P::Public, P::Signature>::decode(
+                    //     &mut &notification.message[..],
+                    // )
+                    // .ok();
+                    None
+                }),
+        );
+
+        loop {
+            let engine = self.gossip_engine.clone();
+            let gossip_engine = future::poll_fn(|cx| engine.lock().poll_unpin(cx));
+
+            futures::select! {
+                notification = self.finality_notifications.next().fuse() => {
+                    if let Some(notification) = notification {
+                        self.handle_finality_notification(notification);
+                    } else {
+                        return;
+                    }
+                },
+                thea_protocol_message = thea_protocol_messages.next().fuse() => {
+                    if let Some(message) = thea_protocol_message {
+                        self.handle_protocol_message(message);
+                    } else {
+                        return;
+                    }
+                },
+                _ = gossip_engine.fuse() => {
+                    error!(target: "thea", "🥩 Gossip engine has terminated.");
+                    return;
+                }
+            }
+        }
+    }
+}
+
+/// Scan the `header` digest log for a THEA validator set change. Return either the new
+/// validator set or `None` in case no validator set change has been signaled.
+fn find_authorities_change<B, Id>(header: &B::Header) -> Option<ValidatorSet<Id>>
+where
+    B: Block,
+    Id: Codec,
+{
+    let id = OpaqueDigestItemId::Consensus(&THEA_ENGINE_ID);
+
+    let filter = |log: ConsensusLog<Id>| match log {
+        ConsensusLog::AuthoritiesChange(validator_set) => Some(validator_set),
+        _ => None,
+    };
+
+    header
+        .digest()
+        .convert_first(|l| l.try_to(id).and_then(filter))
 }
