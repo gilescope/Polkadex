@@ -1,6 +1,5 @@
 //! Service and ServiceFactory implementation. Specialized wrapper over substrate service.
 
-use node_polkadex_runtime::{self, opaque::Block, RuntimeApi};
 use sc_client_api::{ExecutorProvider, RemoteBackend};
 use sc_consensus_aura::{ImportQueueParams, SlotProportion, StartAuraParams};
 use sc_executor::native_executor_instance;
@@ -14,6 +13,8 @@ use sp_consensus_aura::sr25519::AuthorityPair as AuraPair;
 use sp_inherents::InherentDataProvider;
 use std::sync::Arc;
 use std::time::Duration;
+
+use node_polkadex_runtime::{self, opaque::Block, RuntimeApi};
 
 // Our native executor instance.
 native_executor_instance!(
@@ -181,6 +182,11 @@ pub fn new_full(mut config: Configuration) -> Result<TaskManager, ServiceError> 
         .extra_sets
         .push(sc_finality_grandpa::grandpa_peers_set_config());
 
+    config
+        .network
+        .extra_sets
+        .push(sc_t_ecdsa::thea_peers_set_config());
+
     let (network, network_status_sinks, system_rpc_tx, network_starter) =
         sc_service::build_network(sc_service::BuildNetworkParams {
             config: &config,
@@ -232,7 +238,7 @@ pub fn new_full(mut config: Configuration) -> Result<TaskManager, ServiceError> 
         rpc_extensions_builder,
         on_demand: None,
         remote_blockchain: None,
-        backend,
+        backend: backend.clone(),
         network_status_sinks,
         system_rpc_tx,
         config,
@@ -296,6 +302,25 @@ pub fn new_full(mut config: Configuration) -> Result<TaskManager, ServiceError> 
     } else {
         None
     };
+
+    let thea_params = sc_t_ecdsa::TheaParams {
+        client,
+        backend,
+        key_store: keystore.clone(),
+        network: network.clone(),
+        party_idx: 0,
+        threshold: 1,
+        party_count: 3,
+        prometheus_registry: prometheus_registry.clone(),
+    };
+
+    // Start the THEA bridge gadget.
+    task_manager.spawn_essential_handle().spawn_blocking(
+        "thea-worker",
+        sc_t_ecdsa::start_thea_gadget::<_, thea_primitives::ecdsa::AuthorityPair, _, _, _>(
+            thea_params,
+        ),
+    );
 
     let grandpa_config = sc_finality_grandpa::Config {
         // FIXME #1578 make this available through chainspec
@@ -365,6 +390,11 @@ pub fn new_light(mut config: Configuration) -> Result<TaskManager, ServiceError>
         .network
         .extra_sets
         .push(sc_finality_grandpa::grandpa_peers_set_config());
+
+    config
+        .network
+        .extra_sets
+        .push(sc_t_ecdsa::thea_peers_set_config());
 
     let select_chain = sc_consensus::LongestChain::new(backend.clone());
 

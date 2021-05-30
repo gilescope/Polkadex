@@ -4,11 +4,7 @@ panic = 'unwind'
 [workspace]
 members = [
     'node',
-    'pallets/ocex',
-    'pallets/fungible-assets',
-    'pallets/token-faucet',
     'pallets/sc-t-ecdsa',
     'pallets/thea-primitives',
-    'primitives',
     'runtime',
 ]

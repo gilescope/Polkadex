@@ -42,6 +42,15 @@ mod test;
 
 pub const THEA_PROTOCOL_NAME: &str = "/polkadex/thea/1";
 
+/// Returns the configuration value to put in
+/// [`sc_network::config::NetworkConfiguration::extra_sets`].
+pub fn thea_peers_set_config() -> sc_network::config::NonDefaultSetConfig {
+    let mut cfg =
+        sc_network::config::NonDefaultSetConfig::new(THEA_PROTOCOL_NAME.into(), 1024 * 1024);
+    cfg.allow_non_reserved(25, 25);
+    cfg
+}
+
 /// A convenience THEA client trait that defines all the type bounds a THEA client
 /// has to satisfy. Ideally that should actually be a trait alias. Unfortunately as
 /// of today, Rust does not allow a type alias to be used as a trait bound. Tracking
@@ -152,5 +161,5 @@ where
 
     let worker = worker::TheaWorker::<_, _, _, _>::new(worker_params);
 
-    // worker.run().await
+    worker.run().await
 }

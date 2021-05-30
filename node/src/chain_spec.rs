@@ -6,11 +6,9 @@ use sp_runtime::traits::{AccountIdConversion, IdentifyAccount, Verify};
 
 use frame_benchmarking::frame_support::PalletId;
 use node_polkadex_runtime::{
-    AccountId, AuraConfig, BalancesConfig, GenesisConfig, GrandpaConfig, PolkadexOcexConfig,
-    Signature, SudoConfig, SystemConfig, WASM_BINARY,
+    AccountId, AuraConfig, BalancesConfig, GenesisConfig, GrandpaConfig, Signature, SudoConfig,
+    SystemConfig, WASM_BINARY,
 };
-use node_polkadex_runtime::{TokensConfig, VestingConfig};
-use polkadex_primitives::assets::AssetId;
 
 // The URL for the telemetry server.
 // const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
@@ -167,25 +165,6 @@ fn testnet_genesis(
         pallet_sudo: SudoConfig {
             // Assign network admin rights.
             key: root_key.clone(),
-        },
-        orml_tokens: TokensConfig {
-            endowed_accounts: vec![
-                (
-                    endowed_accounts[0].to_owned(),
-                    AssetId::DOT,
-                    1000000000000000000u128,
-                ),
-                (
-                    endowed_accounts[1].to_owned(),
-                    AssetId::DOT,
-                    1000000000000000000u128,
-                ),
-            ],
-        },
-        orml_vesting: VestingConfig { vesting: vec![] },
-        polkadex_ocex: PolkadexOcexConfig {
-            key: genesis.clone(),
-            genesis_account: genesis,
         },
     }
 }

@@ -48,10 +48,12 @@ sc-basic-authorship = { version = "0.9.0", git = "https://github.com/paritytech/
 substrate-frame-rpc-system = { version = "3.0.0", git = "https://github.com/paritytech/substrate.git" }
 pallet-transaction-payment-rpc = { version = "3.0.0", git = "https://github.com/paritytech/substrate.git" }
 
+# Thea pallets
+sc-t-ecdsa = {path="../pallets/sc-t-ecdsa"}
+thea-primitives = {path="../pallets/thea-primitives"}
 # These dependencies are used for runtime benchmarking
 frame-benchmarking = { version = "3.1.0", git = "https://github.com/paritytech/substrate.git" }
 frame-benchmarking-cli = { version = "3.0.0", git = "https://github.com/paritytech/substrate.git" }
-polkadex-primitives = { path = "../primitives", default-features = false }
 node-polkadex-runtime = { path = "../runtime" }
 
 [build-dependencies]

@@ -11,12 +11,9 @@ use sp_std::prelude::*;
 
 use codec::{Decode, Encode};
 use frame_system::{Config, RawOrigin};
-use orml_currencies::BasicCurrencyAdapter;
-use orml_traits::{parameter_type_with_key, MultiCurrencyExtended};
 use pallet_grandpa::fg_primitives;
 use pallet_grandpa::{AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList};
-use polkadex_primitives::assets::AssetId;
-pub use polkadex_primitives::common_types::{Signature, AccountId, Balance};
+// pub use polkadex_primitives::common_types::{Signature, AccountId, Balance};
 use sp_api::impl_runtime_apis;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_runtime::traits::AccountIdConversion;
@@ -46,7 +43,6 @@ pub use frame_support::{
     PalletId, RuntimeDebug, StorageValue,
 };
 pub use pallet_balances::Call as BalancesCall;
-pub use pallet_substratee_registry;
 pub use pallet_timestamp::Call as TimestampCall;
 use pallet_transaction_payment::CurrencyAdapter;
 #[cfg(any(feature = "std", test))]
@@ -57,11 +53,11 @@ pub use sp_runtime::{Perbill, Permill};
 pub type BlockNumber = u32;
 
 /// Alias to 512-bit hash when used in the context of a transaction signature on the chain.
-//pub type Signature = MultiSignature;
+pub type Signature = MultiSignature;
 
 /// Some way of identifying an account on the chain. We intentionally make it equivalent
 /// to the public key of our transaction signing scheme.
-//pub type AccountId = <<Signature as Verify>::Signer as IdentifyAccount>::AccountId;
+pub type AccountId = <<Signature as Verify>::Signer as IdentifyAccount>::AccountId;
 
 pub type Amount = i128;
 
@@ -70,7 +66,7 @@ pub type Amount = i128;
 pub type AccountIndex = u32;
 
 /// Balance of an account.
-// pub type Balance = u128;
+pub type Balance = u128;
 
 /// Index of a transaction in the chain.
 pub type Index = u32;
@@ -289,184 +285,6 @@ impl pallet_sudo::Config for Runtime {
     type Call = Call;
 }
 
-parameter_types! {
-    // One storage item; key size 32, value size 8; .
-    pub const ProxyDepositBase: Balance = 0;
-    // Additional storage item size of 33 bytes.
-    pub const ProxyDepositFactor: Balance = 0;
-    pub const MaxProxies: u16 = 5;
-    pub const AnnouncementDepositBase: Balance = 0;
-    pub const AnnouncementDepositFactor: Balance = 0;
-    pub const MaxPending: u16 = 32;
-}
-
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, RuntimeDebug)]
-pub enum ProxyType {
-    Any,
-    NonTransfer,
-}
-
-impl Default for ProxyType {
-    fn default() -> Self {
-        Self::Any
-    }
-}
-
-impl InstanceFilter<Call> for ProxyType {
-    fn filter(&self, c: &Call) -> bool {
-        match self {
-            ProxyType::Any => true,
-            ProxyType::NonTransfer => !matches!(c, Call::Currencies(..)),
-        }
-    }
-
-    fn is_superset(&self, o: &Self) -> bool {
-        match (self, o) {
-            (x, y) if x == y => true,
-            (ProxyType::Any, _) => true,
-            (_, ProxyType::Any) => false,
-            (ProxyType::NonTransfer, _) => true,
-            _ => false,
-        }
-    }
-}
-
-impl pallet_proxy::Config for Runtime {
-    type Event = Event;
-    type Call = Call;
-    type Currency = Balances;
-    type ProxyType = ProxyType;
-    type ProxyDepositBase = ProxyDepositBase;
-    type ProxyDepositFactor = ProxyDepositFactor;
-    type MaxProxies = MaxProxies;
-    type WeightInfo = pallet_proxy::weights::SubstrateWeight<Runtime>;
-    type MaxPending = MaxPending;
-    type CallHasher = BlakeTwo256;
-    type AnnouncementDepositBase = AnnouncementDepositBase;
-    type AnnouncementDepositFactor = AnnouncementDepositFactor;
-}
-
-parameter_types! {
-    pub TreasuryAccountId: AccountId = PolkadexTreasuryModuleId::get().into_account();
-}
-pub struct EnsureGovernance;
-impl EnsureOrigin<Origin> for EnsureGovernance {
-    type Success = AccountId;
-    fn try_origin(o: Origin) -> Result<Self::Success, Origin> {
-        let bridge_id = MODULE_ID.into_account();
-        Into::<Result<RawOrigin<AccountId>, Origin>>::into(o).and_then(|o| match o {
-            RawOrigin::Signed(who) if who == bridge_id => Ok(bridge_id),
-            r => Err(Origin::from(r)),
-        })
-    }
-
-    #[cfg(feature = "runtime-benchmarks")]
-    fn successful_origin() -> Origin {
-        Origin::from(RawOrigin::Signed(Default::default()))
-    }
-}
-
-impl polkadex_fungible_assets::Config for Runtime {
-    type Event = Event;
-    type TreasuryAccountId = TreasuryAccountId;
-    type GovernanceOrigin = EnsureGovernance;
-    type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, BlockNumber>;
-}
-
-parameter_types! {
-    pub MinVestedTransfer: Balance = 100u128;
-}
-
-pub struct EnsureRootOrPolkadexTreasury;
-impl EnsureOrigin<Origin> for EnsureRootOrPolkadexTreasury {
-    type Success = AccountId;
-
-    fn try_origin(o: Origin) -> Result<Self::Success, Origin> {
-        Into::<Result<RawOrigin<AccountId>, Origin>>::into(o).and_then(|o| match o {
-            RawOrigin::Signed(caller) => {
-                if caller == PolkadexTreasuryModuleId::get().into_account() {
-                    Ok(caller)
-                } else {
-                    Err(Origin::from(Some(caller)))
-                }
-            }
-            r => Err(Origin::from(r)),
-        })
-    }
-
-    #[cfg(feature = "runtime-benchmarks")]
-    fn successful_origin() -> Origin {
-        Origin::from(RawOrigin::Signed(Default::default()))
-    }
-}
-
-impl orml_vesting::Config for Runtime {
-    type Event = Event;
-    type Currency = pallet_balances::Module<Runtime>;
-    type MinVestedTransfer = MinVestedTransfer;
-    type VestedTransferOrigin = EnsureRootOrPolkadexTreasury;
-    type WeightInfo = ();
-}
-
-parameter_type_with_key! {
-    pub ExistentialDeposits: |_currency_id: AssetId| -> Balance {
-        Zero::zero()
-    };
-}
-parameter_types! {
-    pub TreasuryModuleAccount: AccountId = PolkadexTreasuryModuleId::get().into_account();
-}
-
-impl orml_tokens::Config for Runtime {
-    type Event = Event;
-    type Balance = Balance;
-    type Amount = Amount;
-    type CurrencyId = AssetId;
-    type WeightInfo = ();
-    type ExistentialDeposits = ExistentialDeposits;
-    type OnDust = orml_tokens::TransferDust<Runtime, TreasuryModuleAccount>;
-}
-
-parameter_types! {
-    pub const GetNativeCurrencyId: AssetId = AssetId::POLKADEX;
-}
-
-impl orml_currencies::Config for Runtime {
-    type Event = Event;
-    type MultiCurrency = Tokens;
-    type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, BlockNumber>;
-    type GetNativeCurrencyId = GetNativeCurrencyId;
-    type WeightInfo = ();
-}
-
-parameter_types! {
-    pub const MomentsPerDay: Moment = 86_400_000; // [ms/d]
-}
-
-/// added by SCS
-impl pallet_substratee_registry::Config for Runtime {
-    type Event = Event;
-    type Currency = pallet_balances::Pallet<Runtime>;
-    type MomentsPerDay = MomentsPerDay;
-}
-
-parameter_types! {
-    pub const ProxyLimit: usize = 10; // Max sub-accounts per main account
-}
-impl polkadex_ocex::Config for Runtime {
-    type Event = Event;
-    type OcexId = OcexModuleId;
-    type GenesisAccount = OCEXGenesisAccount;
-    type Currency = Currencies;
-    type ProxyLimit = ProxyLimit;
-}
-
-impl token_faucet_pallet::Config for Runtime {
-    type Event = Event;
-    type Balance = Balance;
-    type Currency = Currencies;
-}
-
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
     pub enum Runtime where
@@ -482,14 +300,6 @@ construct_runtime!(
         Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
         TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
         Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
-        Vesting: orml_vesting::{Pallet, Storage, Call, Event<T>, Config<T>},
-        Currencies: orml_currencies::{Pallet, Call, Event<T>},
-        Tokens: orml_tokens::{Pallet, Storage, Event<T>, Config<T>},
-        Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
-        PolkadexFungibleAsset: polkadex_fungible_assets::{Pallet, Call, Storage, Event<T>},
-        SubstrateeRegistry: pallet_substratee_registry::{Pallet, Call, Storage, Event<T>},
-        PolkadexOcex: polkadex_ocex::{Pallet, Call, Storage, Config<T>, Event<T>},
-        TokenFaucet: token_faucet_pallet::{Pallet, Call, Event<T>, Storage, ValidateUnsigned}
     }
 );
 
