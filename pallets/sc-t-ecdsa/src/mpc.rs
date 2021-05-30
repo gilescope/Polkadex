@@ -1,10 +1,27 @@
-use std::fmt;
-use std::mem::replace;
-use std::time::Duration;
+// Copyright (C) 2020-2021 Polkadex OU
+// SPDX-License-Identifier: GPL-3.0-or-later WITH Classpath-exception-2.0
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+// This is file is modified from multi-party-ecdsa Zen-Go library
 
 use curv::cryptographic_primitives::proofs::sigma_dlog::DLogProof;
 use curv::cryptographic_primitives::secret_sharing::feldman_vss::VerifiableSS;
 use curv::elliptic::curves::secp256_k1::{FE, GE};
+use std::fmt;
+use std::mem::replace;
+use std::time::Duration;
 // use log::error;
 use multi_party_ecdsa::protocols::multi_party_ecdsa::gg_2020;
 use round_based::containers::push::{Push, PushExt};
