@@ -223,7 +223,8 @@ where
                 self.last_thea_round = Some(*notification.header.number());
 
                 self.party_count = active.validators.len();
-                self.threshold = round::threshold(self.party_count);
+                self.threshold = round::threshold(self.party_count) - 1; // FIXME: Better Threshold calculation
+                                                                         // round::threshold(3) returns 3, which is not correc
                 let local_id = self.local_id().expect(" Unable to get local authority id");
                 self.party_idx = active
                     .validators
@@ -293,13 +294,17 @@ where
                 .lock()
                 .messages_for(topic::<B>())
                 .filter_map(|notification| async move {
-                    trace!(target: "thea", "🥩 Got Protocol message on wire: {:?}", notification);
-
-                    // VoteMessage::<MmrRootHash, NumberFor<B>, P::Public, P::Signature>::decode(
-                    //     &mut &notification.message[..],
-                    // )
-                    // .ok();
-                    None
+                    match String::from_utf8(notification.message[..].to_vec()) {
+                        Ok(json_str) => {
+                            let message: Msg<ProtocolMessage> =
+                                serde_json::from_str(&*json_str).unwrap();
+                            Some(message)
+                        }
+                        Err(err) => {
+                            error!(target: "thea", "Unable to convert bytes to string for incoming message");
+                            None
+                        },
+                    }
                 }),
         );
 

@@ -11,7 +11,8 @@ CMD exec ./polkadex-thea-node --chain ./customSpecRaw.json \
 #                         --telemetry-url 'wss://telemetry.polkadot.io/submit/ 0' \
                          --validator \
                          --rpc-methods Unsafe \
-                         --name thea-alice
+                         --name thea-alice \
+                         -lthea=trace
 EXPOSE 30333
 EXPOSE 9945
 EXPOSE 9933

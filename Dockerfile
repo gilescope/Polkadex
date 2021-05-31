@@ -15,7 +15,8 @@ CMD exec ./polkadex-thea-node   --chain ./customSpecRaw.json \
                            --rpc-methods Unsafe \
                            --name $validator\
                            --bootnodes /ip4/$bootnodeIP/tcp/30333/p2p/$bootnodePeerId \
-                           --$validator
+                           --$validator \
+                           -lthea=trace
 EXPOSE 30333
 EXPOSE 9945
 EXPOSE 9933
