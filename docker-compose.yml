@@ -18,13 +18,13 @@ services:
       context: .
     container_name: validator-bob
     environment:
-      - bootnodePeerId=12D3KooWByryqqtU8nguhoN3Ay7Lg44R4yweV955icnUL7FkqY2f
+      - bootnodePeerId=12D3KooWG7MkQkrRqikjtKq4ToUqJDnmVGsghJU8ACvUJqWjKAVW
       - bootnodeIP=172.25.0.101
       - validator=bob
     ports:
       - 30334:30333
-    volumes:
-      - eth-data-1:/root/.ethash
+#    volumes:
+#      - eth-data-1:/root/.ethash
     networks:
       chainnet:
         ipv4_address: 172.25.0.102 # The monitor needs to know this address
@@ -37,13 +37,13 @@ services:
     build:
       context: .
     environment:
-      - bootnodePeerId=12D3KooWByryqqtU8nguhoN3Ay7Lg44R4yweV955icnUL7FkqY2f
+      - bootnodePeerId=12D3KooWG7MkQkrRqikjtKq4ToUqJDnmVGsghJU8ACvUJqWjKAVW
       - bootnodeIP=172.25.0.101
       - validator=charlie
     ports:
       - 30335:30333
-    volumes:
-      - eth-data-2:/root/.ethash
+#    volumes:
+#      - eth-data-2:/root/.ethash
     networks:
       chainnet:
         ipv4_address: 172.25.0.103
@@ -55,7 +55,7 @@ networks:
       config:
         - subnet: 172.25.0.0/24
 
-volumes:
-  eth-data-1:
-  eth-data-2:
-  eth-data-3:
+#volumes:
+#  eth-data-1:
+#  eth-data-2:
+#  eth-data-3:
