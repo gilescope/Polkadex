@@ -37,6 +37,7 @@ mod mpc;
 mod mpc_round;
 mod worker;
 
+mod round;
 #[cfg(test)]
 mod test;
 
@@ -95,11 +96,11 @@ pub struct TheaParams<BE, C, N> {
     /// Gossip network
     pub network: N,
     /// Index of Thea party
-    pub party_idx: u16,
+    pub party_idx: usize,
     /// Threshold t
-    pub threshold: u16,
+    pub threshold: usize,
     /// Total number of parties
-    pub party_count: u16,
+    pub party_count: usize,
     /// Prometheus metric registry
     pub prometheus_registry: Option<Registry>,
 }

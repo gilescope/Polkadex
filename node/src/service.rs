@@ -295,9 +295,9 @@ pub fn new_full(mut config: Configuration) -> Result<TaskManager, ServiceError> 
         backend,
         key_store: keystore.clone(),
         network: network.clone(),
-        party_idx: 0,
-        threshold: 1,
-        party_count: 3,
+        party_idx: 0,   // TODO: This should be changed
+        threshold: 1,   // TODO: This should be changed
+        party_count: 3, // TODO: This should be changed and must be taken from on-chain
         prometheus_registry: prometheus_registry.clone(),
     };
 
