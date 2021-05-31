@@ -245,7 +245,7 @@ where
 
                 if self.local_party.is_some() {
                     debug!(target: "thea", "Local Party Created: {:?}", self.local_party);
-                    let mut local_party = self.local_party.as_mut().unwrap();
+                    let local_party = self.local_party.as_mut().unwrap();
                     if local_party.wants_to_proceed() {
                         debug!(target: "thea", "Local Party wants to proceed");
                         match local_party.proceed() {
@@ -277,9 +277,10 @@ where
                         }
                     }
                     local_party.message_queue().clear();
-                    self.local_party = Some(local_party);
                 }
             }
+        } else {
+            trace!(target: "thea", "🥩 Thea Validator Set returned None");
         }
     }
 
