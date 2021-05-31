@@ -5,4 +5,4 @@ docker rm -f $(docker ps -a -q)
 docker volume rm $(docker volume ls -q)
 docker rmi polkadex_validator-charlie:latest
 docker rmi polkadex_validator-bob:latest
-docker rmi polkadex_validator-alice:latest
+docker rmi polkadex_bootnode-alice:latest
