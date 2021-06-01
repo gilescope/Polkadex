@@ -288,6 +288,7 @@ impl pallet_sudo::Config for Runtime {
 }
 
 impl thea_pallet::Config for Runtime {
+    type Event = Event;
     type AuthorityId = TheaId;
 }
 
@@ -303,7 +304,7 @@ construct_runtime!(
         Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
         Aura: pallet_aura::{Pallet, Config<T>},
         Grandpa: pallet_grandpa::{Pallet, Call, Storage, Config, Event},
-        Thea: thea_pallet::{Pallet, Config<T>},
+        Thea: thea_pallet::{Pallet, Call, Storage, Config<T>, Event<T>},
         Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
         TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
         Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},

@@ -19,9 +19,10 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use codec::Encode;
-
+use frame_support::dispatch::DispatchResultWithPostInfo;
 use frame_support::{traits::OneSessionHandler, Parameter};
-
+use frame_system::ensure_signed;
+use frame_system::pallet_prelude::OriginFor;
 use sp_runtime::{
     generic::DigestItem,
     traits::{IsMember, Member},
@@ -29,18 +30,20 @@ use sp_runtime::{
 };
 use sp_std::prelude::*;
 
-use thea_primitives::{AuthorityIndex, ConsensusLog, ValidatorSet, THEA_ENGINE_ID};
-
 pub use pallet::*;
+use thea_primitives::{AuthorityIndex, ConsensusLog, ValidatorSet, THEA_ENGINE_ID};
 
 #[frame_support::pallet]
 pub mod pallet {
-    use super::*;
     use frame_support::pallet_prelude::*;
     use frame_system::pallet_prelude::*;
 
+    use super::*;
+
     #[pallet::config]
     pub trait Config: frame_system::Config {
+        /// The overarching event type.
+        type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
         /// Authority identifier type
         type AuthorityId: Member
             + Parameter
@@ -54,9 +57,6 @@ pub mod pallet {
 
     #[pallet::hooks]
     impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
-
-    #[pallet::call]
-    impl<T: Config> Pallet<T> {}
 
     /// The current authorities set
     #[pallet::storage]
@@ -101,6 +101,31 @@ pub mod pallet {
             Pallet::<T>::initialize_authorities(&self.authorities);
             Pallet::<T>::initialize_can_start(&self.can_start);
         }
+    }
+
+    #[pallet::call]
+    impl<T: Config> Pallet<T> {
+        #[pallet::weight(10_000)]
+        pub(super) fn set_thea_flag(
+            origin: OriginFor<T>,
+            flag: bool,
+        ) -> DispatchResultWithPostInfo {
+            let _sender = ensure_signed(origin)?;
+
+            <TheaFlag<T>>::put(flag);
+
+            Self::deposit_event(Event::TheaFlagChanged(flag));
+
+            Ok(().into())
+        }
+    }
+
+    #[pallet::event]
+    #[pallet::generate_deposit(pub(super) fn deposit_event)]
+    // pub enum Event<T> where AccountId = <T as frame_system::Config>::AccountId, Balance = BalanceOf<T> {
+    pub enum Event<T: Config> {
+        /// Thea Flag changed to \[status\]
+        TheaFlagChanged(bool),
     }
 }
 
