@@ -21,6 +21,7 @@ use std::marker::PhantomData;
 use codec::Decode;
 use log::{debug, error, trace, warn};
 use parking_lot::RwLock;
+use round_based::Msg;
 use sc_network::{ObservedRole, PeerId};
 use sc_network_gossip::{
     MessageIntent, ValidationResult as GossipValidationResult, ValidationResult,
@@ -29,7 +30,10 @@ use sc_network_gossip::{
 use sp_core::Pair;
 use sp_runtime::traits::{Block, Hash, Header, NumberFor};
 
+use crate::mpc::ProtocolMessage;
+
 // Limit THEA gossip by keeping only a bound number of voting rounds alive.
+// It means that  protocol messages will be gossipped for maximum of MAX_LIVE_GOSSIP_ROUNDS
 const MAX_LIVE_GOSSIP_ROUNDS: usize = 5;
 
 /// Gossip engine messages topic
@@ -48,13 +52,14 @@ where
 /// rejected/expired.
 ///
 ///All messaging is handled in a single THEA global topic.
-/// TODO: Should we need different messaging for keygen, reshare and signgen?
+/// QUESTION: Should we need different messaging for keygen, reshare and signgen?
 pub(crate) struct TheaGossipValidator<B, P>
 where
     B: Block,
 {
     topic: B::Hash,
     live_rounds: RwLock<Vec<NumberFor<B>>>,
+    protocol_finished: RwLock<bool>,
     _pair: PhantomData<P>,
 }
 
@@ -66,6 +71,7 @@ where
         TheaGossipValidator {
             topic: topic::<B>(),
             live_rounds: RwLock::new(Vec::new()),
+            protocol_finished: RwLock::from(false),
             _pair: PhantomData,
         }
     }
@@ -86,6 +92,14 @@ where
 
     fn is_live(live_rounds: &[NumberFor<B>], round: NumberFor<B>) -> bool {
         live_rounds.binary_search(&round).is_ok()
+    }
+
+    fn is_protocol_finished(&self) -> bool {
+        *self.protocol_finished.read()
+    }
+    pub(crate) fn set_protocol_status(&self, status: bool) {
+        let mut prev_status = self.protocol_finished.write();
+        *prev_status = status;
     }
 }
 
@@ -111,32 +125,42 @@ where
         //     }
         // }
         // TODO: Verify THEA protocol message signatures here
-        trace!(target: "thea", "🥩 Validating message by sender: {:?}", sender);
-        GossipValidationResult::Discard
+        // trace!(target: "thea", "🥩 Validating message by sender: {:?}", sender);
+        GossipValidationResult::ProcessAndKeep(self.topic)
     }
 
     fn message_expired<'a>(&'a self) -> Box<dyn FnMut(<B as Block>::Hash, &[u8]) -> bool> {
-        let live_rounds = self.live_rounds.read();
-        Box::new(move |topic, mut data| {
-            // TODO: Implement message expiry check
-            trace!(target: "thea", "🥩 Checking message expiry: Topic :{:?}", topic);
-            false
+        // let live_rounds = self.live_rounds.read();
+        let status = self.is_protocol_finished();
+        if status {
+            trace!(target:"thea", "Message expired as protocol is complete");
+        }
+        Box::new(move |_topic, mut data| {
+            let _message = match String::from_utf8(data.to_vec()) {
+                Ok(json_str) => {
+                    let message: Msg<ProtocolMessage> = serde_json::from_str(&*json_str).unwrap();
+                    message
+                }
+                Err(err) => {
+                    error!(target: "thea", "Unable to convert bytes to string for incoming message");
+                    return true;
+                }
+            };
+            // TODO: Check if the keygen is finished
+            // TODO: In future, we want to have a mechanism that maps keygen rounds, signature rounds and
+            // selectively expiring messages whose protocols are complete.
+            status
         })
     }
 
     fn message_allowed<'a>(
         &'a self,
     ) -> Box<dyn FnMut(&PeerId, MessageIntent, &<B as Block>::Hash, &[u8]) -> bool> {
+        let status = self.is_protocol_finished();
         Box::new(move |who, intent, topic, mut _data| {
-            // let message = match VoteMessage::<MmrRootHash, NumberFor<B>, P::Public, P::Signature>::decode(&mut data) {
-            //     Ok(vote) => vote,
-            //     Err(_) => return true,
-            // };
-            //
-            // BeefyGossipValidator::<B, P>::is_live(&live_rounds, message.commitment.block_number)
             // TODO: Implement checks for egress thea gossip messages
-            trace!(target: "thea", "🥩 Sending message out: Topic :{:?}, Who: {:?}", topic,who);
-            true
+            // trace!(target: "thea", "🥩 Sending message out: Topic :{:?}, Who: {:?}", topic,who);
+            !status
         })
     }
 }

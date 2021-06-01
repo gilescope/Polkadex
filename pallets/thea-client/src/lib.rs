@@ -29,17 +29,18 @@ use sp_application_crypto::AppPublic;
 use sp_blockchain::HeaderBackend;
 use sp_keystore::SyncCryptoStorePtr;
 use sp_runtime::traits::Block;
+
 use thea_primitives::TheaApi;
 
 mod gossip;
 mod metrics;
 mod mpc;
 mod mpc_round;
-mod worker;
-
 mod round;
 #[cfg(test)]
 mod test;
+mod types;
+mod worker;
 
 pub const THEA_PROTOCOL_NAME: &str = "/polkadex/thea/1";
 

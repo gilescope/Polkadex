@@ -23,6 +23,7 @@ use std::{
 };
 
 use codec::{Codec, Decode, Encode};
+use curv::elliptic::curves::secp256_k1::GE;
 use futures::{future, FutureExt, StreamExt};
 use hex::ToHex;
 use log::{debug, error, trace, warn};
@@ -102,6 +103,10 @@ where
     last_signed_id: u64,
     /// Local party instance of t-ECDSA
     local_party: Option<Keygen>,
+    /// Status of the protocol
+    protocol_status: bool,
+    /// Public Key of the system
+    public_key: Option<GE>,
     // keep rustc happy
     _backend: PhantomData<BE>,
     _pair: PhantomData<P>,
@@ -152,6 +157,8 @@ where
             last_thea_round: None,
             last_signed_id: 0,
             local_party: None,
+            protocol_status: false,
+            public_key: None,
             _backend: PhantomData,
             _pair: PhantomData,
         }
@@ -169,6 +176,13 @@ where
     C::Api: TheaApi<B, P::Public>,
 {
     // TODO: Implement the threshold ecdsa logic here
+    fn set_status(&mut self, status: bool) {
+        self.protocol_status = status
+    }
+
+    fn set_public_key(&mut self, public_key: GE) {
+        self.public_key = Some(public_key)
+    }
 
     /// Return the current active validator set at header `header`.
     ///
@@ -204,6 +218,10 @@ where
         // update best GRANDPA finalized block we have seen
         self.best_grandpa_block = *notification.header.number();
 
+        if let Some(public_key) = self.public_key {
+            trace!(target: "thea", "Protocol Completed ==> t-ECDSA Public key: {:?}", public_key)
+        }
+
         if let Some(active) = self.validator_set(&notification.header) {
             // Authority set change or genesis set id triggers new voting rounds
             //
@@ -235,14 +253,16 @@ where
 
                 debug!(target: "thea", "t-ECDSA Config: t: {:?}, N: {:?}, party index: {:?}",self.threshold,self.party_count,self.party_idx);
 
-                // Creates a t-ECDSA local party
-                self.local_party = Keygen::new(
-                    self.party_idx as u16,
-                    self.threshold as u16,
-                    self.party_count as u16,
-                )
-                .map_err(|err| error!(target: "thea", "{:?}",err))
-                .ok();
+                if self.local_party.is_none() {
+                    // Creates a t-ECDSA local party
+                    self.local_party = Keygen::new(
+                        self.party_idx as u16,
+                        self.threshold as u16,
+                        self.party_count as u16,
+                    )
+                    .map_err(|err| error!(target: "thea", "{:?}",err))
+                    .ok();
+                }
 
                 if self.local_party.is_some() {
                     debug!(target: "thea", "Local Party Created: {:?}", self.local_party);
@@ -253,12 +273,15 @@ where
                             Ok(()) => (),
                             Err(err) if err.is_critical() => {
                                 error!(target: "thea", "Critical Error in t-ECDSA: {:?}",err);
-                                return panic!(err);
+                                return;
                             }
                             Err(err) => {
                                 warn!(target: "thea", "Non-critical error encountered: {:?}",err);
                             }
                         }
+
+                        self.gossip_validator
+                            .set_protocol_status(local_party.is_finished());
                     }
                     debug!(target: "thea", "Local Party gossiping {:?} protocol messages", local_party.message_queue().len());
                     let mut message_iter = local_party.message_queue().iter();
@@ -287,6 +310,87 @@ where
 
     pub fn handle_protocol_message(&mut self, message: Msg<ProtocolMessage>) {
         trace!(target: "thea", "🥩 Got New Protocol Message: Sender {:?}, Receiver: {:?}", message.sender,message.receiver);
+        if let Some(reciever) = message.receiver {
+            if reciever != self.party_idx as u16 {
+                warn!(target: "thea", "Rejecting message as message is not for me");
+                return;
+            }
+        }
+        let mut status = false;
+        let mut public_key: Option<GE> = None;
+        if self.local_party.is_some() {
+            let local_party = self.local_party.as_mut().unwrap();
+            match local_party.handle_incoming(message) {
+                Ok(()) => (),
+                Err(err) if err.is_critical() => {
+                    error!(target: "thea", "Critical Error in t-ECDSA while handling incoming message: {:?}",err);
+                    return;
+                }
+                Err(err) => {
+                    warn!(target: "thea", "Non-critical error encountered: {:?}",err);
+                }
+            }
+            let mut message_iter = local_party.message_queue().iter();
+            loop {
+                if let Some(message) = message_iter.next() {
+                    // TODO: use send_message instead which will send the message to addressed peers of
+                    // 100 validator shard and reduces the communication overhead
+                    let encoded_message =
+                        serde_json::to_string(message).expect(" Unable to serialize thea message");
+                    self.gossip_engine.lock().gossip_message(
+                        topic::<B>(),
+                        encoded_message.into_bytes(),
+                        false,
+                    );
+                } else {
+                    break;
+                }
+            }
+            local_party.message_queue().clear();
+            if local_party.wants_to_proceed() {
+                match local_party.proceed() {
+                    Ok(()) => (),
+                    Err(err) if err.is_critical() => {
+                        error!(target: "thea", "Critical Error in t-ECDSA while proceeding: {:?}",err);
+                        return;
+                    }
+                    Err(err) => {
+                        warn!(target: "thea", "Non-critical error encountered: {:?}",err);
+                    }
+                }
+                let mut message_iter = local_party.message_queue().iter();
+                loop {
+                    if let Some(message) = message_iter.next() {
+                        // TODO: use send_message instead which will send the message to addressed peers of
+                        // 100 validator shard and reduces the communication overhead
+                        let encoded_message = serde_json::to_string(message)
+                            .expect(" Unable to serialize thea message");
+                        self.gossip_engine.lock().gossip_message(
+                            topic::<B>(),
+                            encoded_message.into_bytes(),
+                            false,
+                        );
+                    } else {
+                        break;
+                    }
+                }
+            }
+            self.gossip_validator
+                .set_protocol_status(local_party.is_finished());
+            status = local_party.is_finished();
+            if local_party.is_finished() {
+                public_key = Some(local_party.pick_output().unwrap().unwrap().public_key());
+            }
+        } else {
+            error!(target: "thea", " Local Party is not initialized yet");
+        }
+
+        self.set_status(status);
+
+        trace!(target: "thea", "Protocol Status: {:?}", status);
+        if status && public_key.is_some() {
+            self.set_public_key(public_key.unwrap())
+        }
     }
     pub(crate) async fn run(mut self) {
         let mut thea_protocol_messages = Box::pin(
