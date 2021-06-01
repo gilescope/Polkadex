@@ -200,6 +200,17 @@ where
         }
     }
 
+    /// It queries on-chain storage to check whether we can start the protocol or not
+    fn can_start(&self, header: &B::Header) -> bool {
+        let at = BlockId::Hash(header.hash());
+        if let Some(can_start) = self.client.runtime_api().can_start(&at).ok() {
+            can_start
+        } else {
+            error!(target: "thea", "call to runtime for checking can_start failed");
+            false
+        }
+    }
+
     /// Return the local authority id.
     ///
     /// `None` is returned, if we are not permitted to participate
@@ -218,6 +229,10 @@ where
         // update best GRANDPA finalized block we have seen
         self.best_grandpa_block = *notification.header.number();
 
+        if !self.can_start(&notification.header) {
+            warn!(target: "thea", "Thea Protocol is paused, flag not set on-chain");
+            return;
+        }
         if let Some(public_key) = self.public_key {
             trace!(target: "thea", "Protocol Completed ==> t-ECDSA Public key: {:?}", public_key)
         }
@@ -229,7 +244,8 @@ where
             // the currently active BEEFY voting round by starting a new one. This is
             // temporary and needs to be replaced by proper round life cycle handling.
             if active.id != self.rounds.validator_set_id()
-                || (active.id == GENESIS_AUTHORITY_SET_ID && self.last_thea_round.is_none())
+                || ((active.id == GENESIS_AUTHORITY_SET_ID && self.last_thea_round.is_none())
+                    && self.can_start(&notification.header))
             {
                 debug!(target: "thea", "🥩 New active validator set id: {:?}", active);
                 metric_set!(self, thea_validator_set_id, active.id);

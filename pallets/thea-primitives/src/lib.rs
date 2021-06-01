@@ -96,5 +96,7 @@ sp_api::decl_runtime_apis! {
     pub trait TheaApi<AuthorityId: Codec> {
         /// Return the current active THEA validator set
         fn validator_set() -> ValidatorSet<AuthorityId>;
+        /// Returns the on-chain flag to start the thea rounds
+        fn can_start() -> bool;
     }
 }

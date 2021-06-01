@@ -174,6 +174,7 @@ fn testnet_genesis(
         },
         thea_pallet: TheaConfig {
             authorities: initial_authorities.iter().map(|x| (x.2.clone())).collect(),
+            can_start: false,
         },
     }
 }

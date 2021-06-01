@@ -63,6 +63,11 @@ pub mod pallet {
     #[pallet::getter(fn authorities)]
     pub(super) type Authorities<T: Config> = StorageValue<_, Vec<T::AuthorityId>, ValueQuery>;
 
+    /// Flag to start THEA round
+    #[pallet::storage]
+    #[pallet::getter(fn can_start_flag)]
+    pub(super) type TheaFlag<T: Config> = StorageValue<_, bool, ValueQuery>;
+
     /// The current validator set id
     #[pallet::storage]
     #[pallet::getter(fn validator_set_id)]
@@ -77,6 +82,7 @@ pub mod pallet {
     #[pallet::genesis_config]
     pub struct GenesisConfig<T: Config> {
         pub authorities: Vec<T::AuthorityId>,
+        pub can_start: bool,
     }
 
     #[cfg(feature = "std")]
@@ -84,6 +90,7 @@ pub mod pallet {
         fn default() -> Self {
             Self {
                 authorities: Vec::new(),
+                can_start: false,
             }
         }
     }
@@ -92,6 +99,7 @@ pub mod pallet {
     impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
         fn build(&self) {
             Pallet::<T>::initialize_authorities(&self.authorities);
+            Pallet::<T>::initialize_can_start(&self.can_start);
         }
     }
 }
@@ -103,6 +111,10 @@ impl<T: Config> Pallet<T> {
             validators: Self::authorities(),
             id: Self::validator_set_id(),
         }
+    }
+
+    pub fn can_start() -> bool {
+        Self::can_start_flag()
     }
 
     fn change_authorities(new: Vec<T::AuthorityId>, queued: Vec<T::AuthorityId>) {
@@ -142,6 +154,9 @@ impl<T: Config> Pallet<T> {
         <ValidatorSetId<T>>::put(0);
         // Like `pallet_session`, initialize the next validator set as well.
         <NextAuthorities<T>>::put(authorities);
+    }
+    fn initialize_can_start(flag: &bool) {
+        <TheaFlag<T>>::put(flag);
     }
 }
 

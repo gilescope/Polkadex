@@ -452,6 +452,10 @@ impl_runtime_apis! {
         fn validator_set() -> ValidatorSet<TheaId> {
             Thea::validator_set()
         }
+
+        fn can_start() -> bool {
+            Thea::can_start()
+        }
     }
 
     impl frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Index> for Runtime {
