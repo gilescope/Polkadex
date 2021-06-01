@@ -23,8 +23,6 @@ services:
       - validator=bob
     ports:
       - 30334:30333
-#    volumes:
-#      - eth-data-1:/root/.ethash
     networks:
       chainnet:
         ipv4_address: 172.25.0.102 # The monitor needs to know this address
@@ -42,8 +40,6 @@ services:
       - validator=charlie
     ports:
       - 30335:30333
-#    volumes:
-#      - eth-data-2:/root/.ethash
     networks:
       chainnet:
         ipv4_address: 172.25.0.103
@@ -54,8 +50,3 @@ networks:
     ipam:
       config:
         - subnet: 172.25.0.0/24
-
-#volumes:
-#  eth-data-1:
-#  eth-data-2:
-#  eth-data-3:
