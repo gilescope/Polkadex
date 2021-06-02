@@ -1,0 +1,29 @@
+plugin: aws_ec2
+
+cache: yes
+cache_plugin: ansible.builtin.jsonfile
+cache_timeout: 3600
+cache_connection: /tmp/aws_inventory
+cache_prefix: aws_ec2
+
+#aws_profile: polkadex-thea
+regions:
+  - ap-south-1
+
+filters:
+  tag:Environment: thea
+
+hostnames:
+  - tag:Name
+  - dns-name
+  - private-ip-address
+
+strict: False
+keyed_groups:
+  - key: tags.Role
+    prefix: ''
+    separator: ''
+    parent_group: polkadex-thea
+
+compose:
+  ansible_host: public_ip_address

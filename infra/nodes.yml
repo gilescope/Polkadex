@@ -1,0 +1,60 @@
+- hosts: thea_node
+  serial: 1
+  order: sorted
+  vars:
+    bootnode_ip: ""
+    bootnode_peer_id: ""
+    bootnodes: "/ip4/{{ bootnode_ip }}/tcp/30333/p2p/{{ bootnode_peer_id }}"
+
+  tasks:
+    - name: Basic preparation
+      import_tasks: base.yml
+
+    - name: Set hostname
+      hostname:
+        name: "{{ inventory_hostname }}"
+
+    - name: Download polkadex-thea-node
+      amazon.aws.aws_s3:
+        bucket: polkadex-thea
+        object: polkadex-thea-node
+        dest: /usr/local/bin/polkadex-thea-node
+        mode: get
+
+    - name: Make polkadex-thea-node executable
+      file:
+        path: /usr/local/bin/polkadex-thea-node
+        mode: "0755"
+
+    - name: Download polkadex-thea-node chainspec
+      amazon.aws.aws_s3:
+        bucket: polkadex-thea
+        object: customSpecRaw.json
+        dest: /etc/customSpecRaw.json
+        mode: get
+
+    - name: Create service file
+      template:
+        src: node.j2
+        dest: /etc/systemd/system/polkadex-thea-node.service
+        owner: root
+        group: root
+        mode: 0644
+      notify: Restart polkadex-thea-node
+
+    - name: Make sure service is running
+      systemd:
+        name: polkadex-thea-node
+        state: started
+        enabled: yes
+
+    - name: Pause for 10 seconds
+      pause:
+        seconds: 10
+
+  handlers:
+    - name: Restart polkadex-thea-node
+      systemd:
+        name: polkadex-thea-node
+        state: restarted
+        daemon_reload: yes

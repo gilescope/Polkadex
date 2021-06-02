@@ -1,0 +1,18 @@
+[Unit]
+Description=Polkadex Thea Node
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=ubuntu
+Group=ubuntu
+ExecStart=/usr/local/bin/polkadex-thea-node \
+    --chain /etc/customSpecRaw.json \
+    --rpc-cors=all \
+    --validator \
+    --bootnodes {{ bootnodes }}
+
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
