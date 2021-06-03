@@ -1,0 +1,14 @@
+- hosts: thea_node
+  gather_facts: False
+  become: yes
+  vars:
+    local_db: "/home/ubuntu/.local/share/polkadex-thea-node/chains/polkadex_testnet/db"
+  tasks:
+    - name: Make sure service is running
+      systemd:
+        name: polkadex-thea-node
+        state: stopped
+    - name: Delete Polkadex Thea Node's DB
+      file:
+        path: "{{ local_db }}"
+        state: absent

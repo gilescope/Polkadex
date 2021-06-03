@@ -41,7 +41,7 @@
         rules:
           - proto: tcp
             ports: 30333
-            group_name: thea-substrate-sg
+            cidr_ip: 0.0.0.0/0
             rule_desc: Substrate P2P
           - proto: tcp
             ports: 9944
@@ -67,7 +67,7 @@
             rule_desc: Substrate SSL RPC
         tags:
           Environment: thea
-      register: thea_substrate_sg
+      register: thea_substrate_ssl_sg
 
     - name: Provision Polkadex Thea nodes
       community.aws.ec2_instance:
