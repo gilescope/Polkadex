@@ -10,7 +10,10 @@ ExecStart=/usr/local/bin/polkadex-thea-node \
     --chain /etc/customSpecRaw.json \
     --rpc-cors=all \
     --validator \
-    --bootnodes {{ bootnodes }}
+    --bootnodes {{ bootnodes }} \
+    --rpc-port=9945 \
+    --in-peers=50 \
+    --out-peers=50
 
 Restart=on-failure
 

@@ -3,11 +3,7 @@
   gather_facts: False
   vars:
     polkadex_thea_nodes:
-      - name: polkadex-node-0
-        zone: aps1-az1
-      - name: polkadex-node-1
-        zone: aps1-az1
-      - name: polkadex-node-2
+      - name: polkadex-node
         zone: aps1-az1
     keypair: polkadex-infra-keypair
     image_id: ami-0c1a7f89451184c8b # Ubuntu 20.04 LTS
@@ -79,7 +75,7 @@
           - "{{ thea_base_sg.group_id }}"
           - "{{ thea_substrate_sg.group_id }}"
         region: ap-south-1
-        availability_zone: "{{ item.zone }}"
+        availability_zone: "{{ polkadex_thea_nodes[0].zone }}"
         network:
           assign_public_ip: true
         volumes:
@@ -89,8 +85,8 @@
               delete_on_termination: true
         ebs_optimized: yes
         wait: no
-        name: "{{ item.name }}"
+        name: "polkadex-node-{{ item }}"
         tags:
           Environment: thea
           Role: thea-node
-      loop: "{{ polkadex_thea_nodes }}"
+      with_sequence: start=0 end=5 # Change 'end' value to increase the number of nodes to provision and deploy

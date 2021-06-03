@@ -1,0 +1,35 @@
+- hosts: thea_node
+  order: sorted
+  tasks:
+    - name: Set hostname
+      hostname:
+        name: "{{ inventory_hostname }}"
+    - name: Copy Aura Keys
+      template:
+        src: "templates/{{ inventory_hostname}}-aura.json"
+        dest: "/home/ubuntu/{{ inventory_hostname }}-aura.json"
+        owner: ubuntu
+        group: ubuntu
+    - name: Copy Grandpa Keys
+      template:
+        src: "templates/{{ inventory_hostname}}-gran.json"
+        dest: "/home/ubuntu/{{ inventory_hostname }}-gran.json"
+        owner: ubuntu
+        group: ubuntu
+    - name: Set Aura Keys
+      shell:
+        "curl http://localhost:9945 -H \"Content-Type:application/json;charset=utf-8\" -d \"@/home/ubuntu/{{ inventory_hostname }}-aura.json\" "
+      register: aura_output
+
+    - name: Print Aura RPC output
+      debug:
+        var: aura_output
+
+    - name: Set Grandpa Keys
+      shell:
+        "curl http://localhost:9945 -H \"Content-Type:application/json;charset=utf-8\" -d \"@/home/ubuntu/{{ inventory_hostname }}-gran.json\" "
+      register: gran_output
+
+    - name: Printing Grandpa RPC Output
+      debug:
+        var: gran_output

@@ -41,9 +41,9 @@
         state: started
         enabled: yes
 
-    - name: Pause for 10 seconds
+    - name: Pause for 60 seconds
       pause:
-        seconds: 10
+        seconds: 60
 
   handlers:
     - name: Restart polkadex-thea-node
