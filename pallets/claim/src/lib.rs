@@ -9,6 +9,9 @@ use sp_runtime::transaction_validity::{
 	InvalidTransaction, TransactionLongevity, TransactionSource, TransactionValidity,
 	ValidTransaction,
 };
+use polkadex_primitives::assets::AssetId;
+use orml_traits::{MultiCurrency, MultiCurrencyExtended};
+use frame_support::sp_runtime::traits::AtLeast32BitUnsigned;
 
 use sp_std::prelude::*;
 
@@ -123,7 +126,18 @@ pub mod pallet {
 		/// Because this pallet emits events, it depends on the runtime's definition of an event.
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		type Call: From<Call<Self>>;
-		type Currency: Currency<Self::AccountId>;
+        type Balance: Parameter
+            + Member
+            + AtLeast32BitUnsigned
+            + Default
+            + Copy
+            + MaybeSerializeDeserialize;
+
+		type Currency: MultiCurrencyExtended<
+            Self::AccountId,
+            CurrencyId = AssetId,
+            Balance = Self::Balance,
+        >;
 	}
 
 	#[pallet::pallet]

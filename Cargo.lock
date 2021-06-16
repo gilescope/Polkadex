@@ -2294,9 +2294,28 @@ checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
 
 [[package]]
 name = "hex-literal"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "961de220ec9a91af2e1e5bd80d02109155695e516771762381ef8581317066e0"
+dependencies = [
+ "hex-literal-impl",
+ "proc-macro-hack",
+]
+
+[[package]]
+name = "hex-literal"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5af1f635ef1bc545d78392b136bfe1c9809e029023c84a3638a864a10b8819c8"
+
+[[package]]
+name = "hex-literal-impl"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "853f769599eb31de176303197b7ba4973299c38c7a7604a6bc88c3eef05b9b46"
+dependencies = [
+ "proc-macro-hack",
+]
 
 [[package]]
 name = "hex_fmt"
@@ -3856,7 +3875,7 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
- "hex-literal",
+ "hex-literal 0.3.1",
  "log",
  "orml-currencies",
  "orml-tokens",
@@ -3902,6 +3921,7 @@ dependencies = [
  "pallet-utility",
  "pallet-vesting",
  "parity-scale-codec",
+ "polkadex-claim",
  "polkadex-fungible-assets",
  "polkadex-ocex",
  "polkadex-primitives",
@@ -5211,6 +5231,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "989d43012e2ca1c4a02507c67282691a0a3207f9dc67cec596b43fe925b3d325"
 
 [[package]]
+name = "polkadex-claim"
+version = "2.0.1"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "hex-literal 0.2.1",
+ "log",
+ "orml-traits",
+ "parity-scale-codec",
+ "polkadex-primitives",
+ "rustc-hex",
+ "serde",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "polkadex-fungible-assets"
 version = "0.1.0"
 dependencies = [
@@ -5242,7 +5280,7 @@ dependencies = [
  "frame-benchmarking-cli",
  "frame-system",
  "futures 0.3.15",
- "hex-literal",
+ "hex-literal 0.3.1",
  "jsonrpc-core",
  "log",
  "nix",
@@ -6891,7 +6929,7 @@ dependencies = [
  "fdlimit",
  "futures 0.1.31",
  "futures 0.3.15",
- "hex-literal",
+ "hex-literal 0.3.1",
  "log",
  "parity-scale-codec",
  "parking_lot 0.11.1",

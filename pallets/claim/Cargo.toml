@@ -1,6 +1,6 @@
 [package]
 edition = '2018'
-name = 'pallet-claim'
+name = 'polkadex-claim'
 version = "2.0.1"
 license = "Apache 2.0"
 
@@ -17,19 +17,12 @@ sp-std = { git="https://github.com/paritytech/substrate", default-features=false
 sp-io = { git="https://github.com/paritytech/substrate", default-features=false }
 sp-runtime = { git="https://github.com/paritytech/substrate", default-features=false }
 log = { version="0.4.14", default-features=false }
-
-[dependencies.pallet-balances]
-default-features = false
-version = "3.0.0"
-path = "https://github.com/paritytech/substrate/frame/balances"
+polkadex-primitives = { git="https://github.com/Polkadex-Substrate/polkadex-primitives.git", branch='main', default-features=false }
+orml-traits = { git="https://github.com/Polkadex-Substrate/open-runtime-module-library.git", default-features=false }
 
 [dev-dependencies]
 hex-literal = "0.2.1"
-pallet-timestamp = { version="3.0.0", path="https://github.com/paritytech/substrate/frame/timestamp" }
 codec = { package="parity-scale-codec", version="2.1", default-features=false }
-sp-core = { version="3.0.0", default-features=false, path="https://github.com/paritytech/substrate/primitives/core" }
-sp-io = { version="3.0.0", default-features=false, path="https://github.com/paritytech/substrate/primitives/io" }
-sp-runtime = { version="3.0.0", default-features=false, path="https://github.com/paritytech/substrate/primitives/runtime" }
 
 [features]
 default = ['std']
@@ -38,7 +31,8 @@ std = [
     "codec/std",
     "frame-support/std",
     "frame-system/std",
-    "pallet-balances/std",
     "log/std",
+    "orml-traits/std",
+    "polkadex-primitives/std",
 ]
 try-runtime = ["frame-support/try-runtime"]

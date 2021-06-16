@@ -1102,6 +1102,7 @@ construct_runtime!(
         ChainBridge: chainbridge::{Pallet, Call, Storage, Event<T>},
         Example: example::{Pallet, Call, Event<T>},
         Erc721: erc721::{Pallet, Call, Storage, Event<T>},
+        PolkadexClaim: polkadex_claim::{Pallet, Call, Storage, Event<T>, ValidateUnsigned},
     }
 );
 
@@ -1606,6 +1607,14 @@ impl example::Config for Runtime {
     type NativeTokenId = NativeTokenId;
     type Erc721Id = NFTTokenId;
 }
+
+impl polkadex_claim::Config for Runtime {
+	type Event = Event;
+	type Call = Call;
+	type Balance = Balance;
+    type Currency = Currencies;
+}
+
 #[cfg(test)]
 mod tests {
     use frame_system::offchain::CreateSignedTransaction;
