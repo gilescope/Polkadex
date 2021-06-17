@@ -37,6 +37,8 @@ mod mock;
 
 #[cfg(test)]
 mod test;
+#[cfg(feature = "runtime-benchmarks")]
+mod benchmarking;
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, Debug)]
 pub struct LinkedAccount<T: Config> {

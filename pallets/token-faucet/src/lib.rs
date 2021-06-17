@@ -1,5 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
+
 use frame_support::pallet_prelude::*;
 use frame_support::sp_runtime::traits::AtLeast32BitUnsigned;
 use frame_support::sp_runtime::SaturatedConversion;
@@ -121,3 +122,5 @@ impl<T: Config> frame_support::unsigned::ValidateUnsigned for Module<T> {
         }
     }
 }
+#[cfg(feature = "runtime-benchmarks")]
+mod benchmarking;
