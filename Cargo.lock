@@ -5239,6 +5239,7 @@ dependencies = [
  "hex-literal 0.2.1",
  "log",
  "orml-traits",
+ "pallet-balances",
  "parity-scale-codec",
  "polkadex-primitives",
  "rustc-hex",

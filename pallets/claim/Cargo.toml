@@ -9,13 +9,16 @@ targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
 codec = { version="2.0.0", package="parity-scale-codec", default-features=false, features=["derive"] }
-serde = { version="1.0.102", optional=true }
+serde = { version="1.0.101", optional=true }
+
 rustc-hex = { version="2.0.1", default-features=false }
 frame-support = { git="https://github.com/paritytech/substrate", default-features=false }
 frame-system = { git="https://github.com/paritytech/substrate", default-features=false }
+
 sp-std = { git="https://github.com/paritytech/substrate", default-features=false }
 sp-io = { git="https://github.com/paritytech/substrate", default-features=false }
 sp-runtime = { git="https://github.com/paritytech/substrate", default-features=false }
+
 log = { version="0.4.14", default-features=false }
 polkadex-primitives = { git="https://github.com/Polkadex-Substrate/polkadex-primitives.git", branch='main', default-features=false }
 orml-traits = { git="https://github.com/Polkadex-Substrate/open-runtime-module-library.git", default-features=false }
@@ -23,12 +26,16 @@ orml-traits = { git="https://github.com/Polkadex-Substrate/open-runtime-module-l
 [dev-dependencies]
 hex-literal = "0.2.1"
 codec = { package="parity-scale-codec", version="2.1", default-features=false }
+pallet-balances = { version="3.0.0", default-features=false, git="https://github.com/paritytech/substrate.git" }
 
 [features]
 default = ['std']
 std = [
     "serde/std",
     "codec/std",
+    "sp-std/std",
+    "sp-runtime/std",
+    "sp-io/std",
     "frame-support/std",
     "frame-system/std",
     "log/std",
