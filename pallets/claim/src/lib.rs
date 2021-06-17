@@ -3,7 +3,7 @@ use codec::{Decode, Encode};
 
 use frame_support::pallet_prelude::*;
 use frame_support::{
-    decl_error, decl_event, decl_module, decl_storage, dispatch::DispatchResult, ensure,
+    decl_error, decl_event, decl_module, decl_storage, ensure,
     traits::Get, traits::Currency, RuntimeDebug, Parameter
 };
 #[cfg(feature = "std")]
@@ -14,7 +14,7 @@ use sp_runtime::transaction_validity::{
 	ValidTransaction,
 };
 use polkadex_primitives::assets::AssetId;
-use orml_traits::{MultiCurrency, MultiCurrencyExtended};
+use orml_traits::{MultiCurrencyExtended};
 use frame_support::sp_runtime::traits::AtLeast32BitUnsigned;
 
 use sp_std::prelude::*;
@@ -202,7 +202,7 @@ decl_module! {
 			}
 
 			Relayer::<T>::put(Some(&new_relayer));
-			Self::deposit_event(Event::RelayerChanged(new_relayer));
+			Self::deposit_event(RawEvent::RelayerChanged(new_relayer));
 			Ok(())
 		}
 
@@ -232,7 +232,7 @@ decl_module! {
 					(eth_address.clone(), erc20_amount.clone()),
 				);
 				ClaimState::<T>::insert(&eth_tx_hash, false);
-				Self::deposit_event(Event::ERC20TransactionStored(
+				Self::deposit_event(RawEvent::ERC20TransactionStored(
 					who.clone(),
 					*eth_tx_hash,
 					*eth_address,
@@ -273,7 +273,7 @@ decl_module! {
 			// let imbalance = T::Currency::deposit_creating(&account, tx.1);
 			// drop(imbalance);
             T::Currency::deposit(AssetId::PDEX, &account, tx.1)?;
-			Self::deposit_event(Event::ERC20TokenClaimed(account, eth_tx_hash, tx.1));
+			Self::deposit_event(RawEvent::ERC20TokenClaimed(account, eth_tx_hash, tx.1));
 
 			Ok(())
 		}
