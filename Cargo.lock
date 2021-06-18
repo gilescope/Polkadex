@@ -5238,6 +5238,7 @@ dependencies = [
  "frame-system",
  "hex-literal 0.2.1",
  "log",
+ "orml-tokens",
  "orml-traits",
  "pallet-balances",
  "parity-scale-codec",

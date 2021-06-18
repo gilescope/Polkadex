@@ -22,6 +22,7 @@ sp-runtime = { git="https://github.com/paritytech/substrate", default-features=f
 log = { version="0.4.14", default-features=false }
 polkadex-primitives = { git="https://github.com/Polkadex-Substrate/polkadex-primitives.git", branch='main', default-features=false }
 orml-traits = { git="https://github.com/Polkadex-Substrate/open-runtime-module-library.git", default-features=false }
+orml-tokens = { git="https://github.com/Polkadex-Substrate/open-runtime-module-library.git", default-features=false }
 
 [dev-dependencies]
 hex-literal = "0.2.1"

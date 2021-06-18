@@ -3,8 +3,8 @@ use codec::{Decode, Encode};
 
 use frame_support::pallet_prelude::*;
 use frame_support::{
-    decl_error, decl_event, decl_module, decl_storage, dispatch::DispatchResult, ensure,
-    traits::Get, traits::Currency, RuntimeDebug, Parameter
+	decl_error, decl_event, decl_module, decl_storage, dispatch::DispatchResult, ensure,
+	traits::Get, traits::Currency, RuntimeDebug, Parameter
 };
 #[cfg(feature = "std")]
 use serde::{self, Deserialize, Deserializer, Serialize, Serializer};
@@ -16,7 +16,7 @@ use sp_runtime::transaction_validity::{
 use polkadex_primitives::assets::AssetId;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended};
 use frame_support::sp_runtime::traits::AtLeast32BitUnsigned;
-
+use frame_system::{ensure_signed,ensure_none,ensure_root};
 use sp_std::prelude::*;
 
 #[cfg(test)]
@@ -31,8 +31,8 @@ pub struct EthereumAddress([u8; 20]);
 #[cfg(feature = "std")]
 impl Serialize for EthereumAddress {
 	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-	where
-		S: Serializer,
+		where
+			S: Serializer,
 	{
 		let hex: String = rustc_hex::ToHex::to_hex(&self.0[..]);
 		serializer.serialize_str(&format!("0x{}", hex))
@@ -42,8 +42,8 @@ impl Serialize for EthereumAddress {
 #[cfg(feature = "std")]
 impl<'de> Deserialize<'de> for EthereumAddress {
 	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-	where
-		D: Deserializer<'de>,
+		where
+			D: Deserializer<'de>,
 	{
 		let base_string = String::deserialize(deserializer)?;
 		let offset = if base_string.starts_with("0x") { 2 } else { 0 };
@@ -82,8 +82,8 @@ pub struct EthereumTxHash([u8; 32]);
 #[cfg(feature = "std")]
 impl Serialize for EthereumTxHash {
 	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-	where
-		S: Serializer,
+		where
+			S: Serializer,
 	{
 		let hex: String = rustc_hex::ToHex::to_hex(&self.0[..]);
 		serializer.serialize_str(&format!("0x{}", hex))
@@ -93,8 +93,8 @@ impl Serialize for EthereumTxHash {
 #[cfg(feature = "std")]
 impl<'de> Deserialize<'de> for EthereumTxHash {
 	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-	where
-		D: Deserializer<'de>,
+		where
+			D: Deserializer<'de>,
 	{
 		let base_string = String::deserialize(deserializer)?;
 		let offset = if base_string.starts_with("0x") { 2 } else { 0 };
@@ -112,33 +112,22 @@ impl<'de> Deserialize<'de> for EthereumTxHash {
 	}
 }
 
-/// The balance type of this module.
-pub type BalanceOf<T> =
-	<<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
+pub trait Config: frame_system::Config + orml_tokens::Config {
+	/// Because this pallet emits events, it depends on the runtime's definition of an event.
+	type Event: From<Event<Self>> + Into<<Self as frame_system::Config>::Event>;
 
-pub trait Config: frame_system::Config {
-    /// Because this pallet emits events, it depends on the runtime's definition of an event.
-    type Event: From<Event<Self>> + Into<<Self as frame_system::Config>::Event>;
-    type Call: From<Call<Self>>;
-    type Balance: Parameter
-        + Member
-        + AtLeast32BitUnsigned
-        + Default
-        + Copy
-        + MaybeSerializeDeserialize;
-
-    type Currency: MultiCurrencyExtended<
-        Self::AccountId,
-        CurrencyId = AssetId,
-        Balance = Self::Balance,
-    >;
+	type Currency: MultiCurrencyExtended<
+		Self::AccountId,
+		CurrencyId = AssetId,
+		Balance = Self::Balance,
+	>;
 }
 
 decl_event! {
     pub enum Event<T>
     where
-        <T as frame_system::Config>::AccountId,
-        Balance = BalanceOf<T>
+		AccountId = <T as frame_system::Config>::AccountId,
+	 <T as orml_tokens::Config>::Balance
     {
         /// Event emitted when a transaction has been stored.
 		ERC20TransactionStored(AccountId, EthereumTxHash, EthereumAddress, Balance),
@@ -175,9 +164,9 @@ decl_error! {
 decl_storage! {
     trait Store for Module<T: Config> as PolkadexClaim {
         pub EndHeight get(fn end_height): u64;
-        pub BurnedTransactions get(fn burned_transactions): map hasher(opaque_blake2_128) EthereumTxHash => (EthereumAddress, BalanceOf<T>);
+        pub BurnedTransactions get(fn burned_transactions): map hasher(opaque_blake2_128) EthereumTxHash => (EthereumAddress, T::Balance);
         pub ClaimState get(fn claim_state): map hasher(opaque_blake2_128) EthereumTxHash => bool;
-        pub Relayer get(fn relayer): Option<T::AccountId>;
+        pub Relayer get(fn relayer): T::AccountId;
     }
 }
 
@@ -187,36 +176,38 @@ decl_module! {
 
         fn deposit_event() = default;
 
-        #[pallet::weight(0 + T::DbWeight::get().reads_writes(1,1))]
+        #[weight=0 + T::DbWeight::get().reads_writes(1,1)]
 		pub fn change_relayer(
-			origin: OriginFor<T>,
+			origin,
 			new_relayer: T::AccountId,
 		) -> DispatchResult {
 			ensure_root(origin)?;
-			let old_relayer = Relayer::<T>::get();
-			if old_relayer.is_some() {
+
+			if Relayer::<T>::exists() {
+				let old_relayer = Relayer::<T>::get();
 				ensure!(
-					Some(&new_relayer) != old_relayer.flatten().as_ref(),
+					Some(&new_relayer) != Some(&old_relayer),
 					Error::<T>::RelayerNotChanged
 				);
 			}
 
-			Relayer::<T>::put(Some(&new_relayer));
-			Self::deposit_event(Event::RelayerChanged(new_relayer));
+			Relayer::<T>::put(&new_relayer);
+			Self::deposit_event(RawEvent::RelayerChanged(new_relayer));
 			Ok(())
 		}
 
-		#[pallet::weight(0 + T::DbWeight::get().reads_writes(1,1))]
+		#[weight=0 + T::DbWeight::get().reads_writes(1,1)]
 		pub fn store_erc20_burned_transactions(
-			origin: OriginFor<T>,
+			origin,
 			height: u64,
-			claims: Vec<(EthereumTxHash, EthereumAddress, BalanceOf<T>)>,
+			claims: Vec<(EthereumTxHash, EthereumAddress,T::Balance)>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
+
+			ensure!(Relayer::<T>::exists(), Error::<T>::NoRelayer);
 			let relayer = Relayer::<T>::get();
-			ensure!(relayer.is_some(), Error::<T>::NoRelayer);
 			ensure!(
-				Some(&who) == relayer.flatten().as_ref(),
+				Some(&who) == Some(&relayer),
 				Error::<T>::CallerNotRelayer
 			);
 			// check first
@@ -231,25 +222,25 @@ decl_module! {
 					&eth_tx_hash,
 					(eth_address.clone(), erc20_amount.clone()),
 				);
-				ClaimState::<T>::insert(&eth_tx_hash, false);
-				Self::deposit_event(Event::ERC20TransactionStored(
+				ClaimState::insert(&eth_tx_hash, false);
+				Self::deposit_event(RawEvent::ERC20TransactionStored(
 					who.clone(),
 					*eth_tx_hash,
 					*eth_address,
 					*erc20_amount,
 				));
 			}
-			let end_height = EndHeight::<T>::get().unwrap_or_default();
+			let end_height = EndHeight::get();
 			if height > end_height {
-				EndHeight::<T>::put(height);
+				EndHeight::put(height);
 			}
 
 			Ok(())
 		}
 
-		#[pallet::weight(0 + T::DbWeight::get().reads_writes(1,1))]
+		#[weight=0 + T::DbWeight::get().reads_writes(1,1)]
 		pub fn claim_erc20_token(
-			origin: OriginFor<T>,
+			origin,
 			account: T::AccountId,
 			eth_tx_hash: EthereumTxHash,
 			eth_signature: EcdsaSignature,
@@ -260,20 +251,20 @@ decl_module! {
 				Error::<T>::TxHashNotFound
 			);
 			ensure!(
-				ClaimState::<T>::get(&eth_tx_hash).is_some(),
+				ClaimState::get(&eth_tx_hash),
 				Error::<T>::TxAlreadyClaimed
 			);
 			let address = Encode::encode(&account);
 			let signer = Self::eth_recover(&eth_signature, &address, &eth_tx_hash.0)
 				.ok_or(Error::<T>::InvalidSignature)?;
-			let tx = BurnedTransactions::<T>::get(&eth_tx_hash).unwrap_or_default();
+			let tx = BurnedTransactions::<T>::get(&eth_tx_hash);
 			ensure!(signer == tx.0, Error::<T>::InvalidSigner);
-			ClaimState::<T>::insert(&eth_tx_hash, true);
+			ClaimState::insert(&eth_tx_hash, true);
 			// mint coins
 			// let imbalance = T::Currency::deposit_creating(&account, tx.1);
 			// drop(imbalance);
-            T::Currency::deposit(AssetId::PDEX, &account, tx.1)?;
-			Self::deposit_event(Event::ERC20TokenClaimed(account, eth_tx_hash, tx.1));
+            T::Currency::deposit(AssetId::POLKADEX, &account, tx.1)?;
+			Self::deposit_event(RawEvent::ERC20TokenClaimed(account, eth_tx_hash, tx.1));
 
 			Ok(())
 		}
@@ -281,70 +272,70 @@ decl_module! {
 }
 
 impl<T: Config> Module<T> {
-    // Constructs the message that Ethereum RPC's `personal_sign` and `eth_sign` would sign.
-    fn ethereum_signable_message(what: &[u8], extra: &[u8]) -> Vec<u8> {
-        let mut l = what.len() + extra.len();
-        let mut rev = Vec::new();
-        while l > 0 {
-            rev.push(b'0' + (l % 10) as u8);
-            l /= 10;
-        }
-        let mut v = b"\x19Ethereum Signed Message:\n".to_vec();
-        v.extend(rev.into_iter().rev());
-        v.extend_from_slice(what);
-        v.extend_from_slice(extra);
-        v
-    }
+	// Constructs the message that Ethereum RPC's `personal_sign` and `eth_sign` would sign.
+	fn ethereum_signable_message(what: &[u8], extra: &[u8]) -> Vec<u8> {
+		let mut l = what.len() + extra.len();
+		let mut rev = Vec::new();
+		while l > 0 {
+			rev.push(b'0' + (l % 10) as u8);
+			l /= 10;
+		}
+		let mut v = b"\x19Ethereum Signed Message:\n".to_vec();
+		v.extend(rev.into_iter().rev());
+		v.extend_from_slice(what);
+		v.extend_from_slice(extra);
+		v
+	}
 
-    // Attempts to recover the Ethereum address from a message signature signed by using
-    // the Ethereum RPC's `personal_sign` and `eth_sign`.
-    fn eth_recover(s: &EcdsaSignature, what: &[u8], extra: &[u8]) -> Option<EthereumAddress> {
-        let msg = keccak_256(&Self::ethereum_signable_message(what, extra));
-        let mut res = EthereumAddress::default();
-        res.0
-            .copy_from_slice(&keccak_256(&secp256k1_ecdsa_recover(&s.0, &msg).ok()?[..])[12..]);
-        Some(res)
-    }
+	// Attempts to recover the Ethereum address from a message signature signed by using
+	// the Ethereum RPC's `personal_sign` and `eth_sign`.
+	fn eth_recover(s: &EcdsaSignature, what: &[u8], extra: &[u8]) -> Option<EthereumAddress> {
+		let msg = keccak_256(&Self::ethereum_signable_message(what, extra));
+		let mut res = EthereumAddress::default();
+		res.0
+			.copy_from_slice(&keccak_256(&secp256k1_ecdsa_recover(&s.0, &msg).ok()?[..])[12..]);
+		Some(res)
+	}
 }
 
 impl<T: Config> frame_support::unsigned::ValidateUnsigned for Module<T> {
-    type Call = Call<T>;
+	type Call = Call<T>;
 
-    fn validate_unsigned(_source: TransactionSource, call: &Self::Call) -> TransactionValidity {
-        const PRIORITY: u64 = 100;
+	fn validate_unsigned(_source: TransactionSource, call: &Self::Call) -> TransactionValidity {
+		const PRIORITY: u64 = 100;
 
-        let (maybe_signer, tx_hash) = match call {
-            Call::claim_erc20_token(account, eth_tx_hash, eth_signature) => {
-                let address = Encode::encode(&account);
-                (
-                    Self::eth_recover(&eth_signature, &address, &eth_tx_hash.0),
-                    eth_tx_hash,
-                )
-            }
-            _ => return Err(InvalidTransaction::Call.into()),
-        };
+		let (maybe_signer, tx_hash) = match call {
+			Call::claim_erc20_token(account, eth_tx_hash, eth_signature) => {
+				let address = Encode::encode(&account);
+				(
+					Self::eth_recover(&eth_signature, &address, &eth_tx_hash.0),
+					eth_tx_hash,
+				)
+			}
+			_ => return Err(InvalidTransaction::Call.into()),
+		};
 
-        let e = InvalidTransaction::Custom(ValidityError::TxHashNotFound.into());
-        ensure!(BurnedTransactions::<T>::contains_key(&tx_hash), e);
+		let e = InvalidTransaction::Custom(ValidityError::TxHashNotFound.into());
+		ensure!(<BurnedTransactions<T>>::contains_key(&tx_hash), e);
 
-        let signer = maybe_signer.ok_or(InvalidTransaction::BadProof)?;
+		let signer = maybe_signer.ok_or(InvalidTransaction::BadProof)?;
 
-        let e = InvalidTransaction::Custom(ValidityError::InvalidSigner.into());
-        let stored_tx = BurnedTransactions::<T>::get(&tx_hash).unwrap_or_default();
-        let stored_signer = stored_tx.0;
-        ensure!(signer == stored_signer, e);
+		let e = InvalidTransaction::Custom(ValidityError::InvalidSigner.into());
+		let stored_tx = <BurnedTransactions<T>>::get(&tx_hash);
+		let stored_signer = stored_tx.0;
+		ensure!(signer == stored_signer, e);
 
-        let e = InvalidTransaction::Custom(ValidityError::TxAlreadyClaimed.into());
-        ensure!(!ClaimState::<T>::get(&tx_hash).unwrap_or_default(), e);
+		let e = InvalidTransaction::Custom(ValidityError::TxAlreadyClaimed.into());
+		ensure!(!<ClaimState>::get(&tx_hash), e);
 
-        Ok(ValidTransaction {
-            priority: PRIORITY,
-            requires: vec![],
-            provides: vec![("claims", signer).encode()],
-            longevity: TransactionLongevity::max_value(),
-            propagate: true,
-        })
-    }
+		Ok(ValidTransaction {
+			priority: PRIORITY,
+			requires: vec![],
+			provides: vec![("claims", signer).encode()],
+			longevity: TransactionLongevity::max_value(),
+			propagate: true,
+		})
+	}
 }
 
 #[repr(u8)]
