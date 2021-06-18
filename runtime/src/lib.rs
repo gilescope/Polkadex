@@ -1610,8 +1610,6 @@ impl example::Config for Runtime {
 
 impl polkadex_claim::Config for Runtime {
 	type Event = Event;
-	type Call = Call;
-	type Balance = Balance;
     type Currency = Currencies;
 }
 
