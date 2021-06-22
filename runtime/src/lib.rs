@@ -1433,7 +1433,7 @@ impl_runtime_apis! {
             add_benchmark!(params, batches, pallet_utility, Utility);
             add_benchmark!(params, batches, pallet_vesting, Vesting);*/
             //polkadex pallets
-            add_benchmark!(params, batches, token_faucet_pallet, TokenFaucet);
+            //add_benchmark!(params, batches, token_faucet_pallet, TokenFaucet);
 
             /*
             PolkadexOcex: polkadex_ocex::{Pallet, Call, Storage, Config<T>, Event<T>},
