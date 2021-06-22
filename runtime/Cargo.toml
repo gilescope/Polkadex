@@ -102,7 +102,7 @@ orml-traits = { git="https://github.com/Polkadex-Substrate/open-runtime-module-l
 polkadex-primitives = { git="https://github.com/Polkadex-Substrate/polkadex-primitives.git", branch='main', default-features=false }
 polkadex-fungible-assets = { path="../pallets/fungible-assets", version="0.1.0", default-features=false }
 polkadex-ocex = { path="../pallets/ocex", default-features=false }
-polkadex-claim = { path="../pallets/claim", default-features=false }
+pallet-claim = { path="../pallets/claim", default-features=false }
 pallet-substratee-registry = { git="https://github.com/Polkadex-Substrate/pallet-substratee-registry.git", default-features=false }
 token-faucet-pallet = { path="../pallets/token-faucet", default-features=false }
 

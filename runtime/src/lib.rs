@@ -1102,7 +1102,7 @@ construct_runtime!(
         ChainBridge: chainbridge::{Pallet, Call, Storage, Event<T>},
         Example: example::{Pallet, Call, Event<T>},
         Erc721: erc721::{Pallet, Call, Storage, Event<T>},
-        PolkadexClaim: polkadex_claim::{Pallet, Call, Storage, Event<T>, ValidateUnsigned},
+        PhaClaim: pallet_claim::{Pallet, Call, Storage, Event<T>, ValidateUnsigned},
     }
 );
 
@@ -1608,7 +1608,7 @@ impl example::Config for Runtime {
     type Erc721Id = NFTTokenId;
 }
 
-impl polkadex_claim::Config for Runtime {
+impl pallet_claim::Config for Runtime {
 	type Event = Event;
     type Currency = Currencies;
 }

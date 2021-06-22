@@ -162,7 +162,7 @@ decl_error! {
 }
 
 decl_storage! {
-    trait Store for Module<T: Config> as PolkadexClaim {
+    trait Store for Module<T: Config> as PalletClaim {
         pub EndHeight get(fn end_height): u64;
         pub BurnedTransactions get(fn burned_transactions): map hasher(opaque_blake2_128) EthereumTxHash => (EthereumAddress, T::Balance);
         pub ClaimState get(fn claim_state): map hasher(opaque_blake2_128) EthereumTxHash => bool;
