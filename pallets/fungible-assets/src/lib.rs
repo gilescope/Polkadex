@@ -42,6 +42,8 @@ mod mock;
 
 #[cfg(test)]
 mod test;
+#[cfg(feature = "runtime-benchmarks")]
+mod benchmarking;
 
 pub(crate) type BalanceOf<T> = <T as orml_tokens::Config>::Balance;
 
