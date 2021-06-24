@@ -792,23 +792,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "chainbridge"
-version = "0.0.2"
-source = "git+https://github.com/Polkadex-Substrate/chainbridge-substrate?branch=main#1bd952b3417e83c9b7b1165f768fdf80e8e73f2d"
-dependencies = [
- "frame-support",
- "frame-system",
- "pallet-balances",
- "parity-scale-codec",
- "serde",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "substrate-wasm-builder-runner",
-]
-
-[[package]]
 name = "chrono"
 version = "0.4.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1489,44 +1472,6 @@ name = "event-listener"
 version = "2.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f7531096570974c3a9dcf9e4b8e1cede1ec26cf5046219fb3b9d897503b9be59"
-
-[[package]]
-name = "example-erc721"
-version = "0.0.1"
-source = "git+https://github.com/Polkadex-Substrate/chainbridge-substrate?branch=main#7ffaa73306ee4ab5e832347b2abd44a343e7fa16"
-dependencies = [
- "chainbridge",
- "frame-support",
- "frame-system",
- "parity-scale-codec",
- "serde",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "substrate-wasm-builder-runner",
-]
-
-[[package]]
-name = "example-pallet"
-version = "0.0.1"
-source = "git+https://github.com/Polkadex-Substrate/chainbridge-substrate?branch=main#7ffaa73306ee4ab5e832347b2abd44a343e7fa16"
-dependencies = [
- "chainbridge",
- "example-erc721",
- "frame-support",
- "frame-system",
- "orml-traits",
- "parity-scale-codec",
- "polkadex-primitives",
- "serde",
- "sp-arithmetic",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "substrate-wasm-builder-runner",
-]
 
 [[package]]
 name = "exit-future"
@@ -3827,9 +3772,6 @@ dependencies = [
 name = "node-polkadex-runtime"
 version = "3.0.0"
 dependencies = [
- "chainbridge",
- "example-erc721",
- "example-pallet",
  "frame-benchmarking",
  "frame-executive",
  "frame-support",
@@ -3864,11 +3806,13 @@ dependencies = [
  "pallet-membership",
  "pallet-multisig",
  "pallet-offences",
+ "pallet-offences-benchmarking",
  "pallet-proxy",
  "pallet-randomness-collective-flip",
  "pallet-recovery",
  "pallet-scheduler",
  "pallet-session",
+ "pallet-session-benchmarking",
  "pallet-society",
  "pallet-staking",
  "pallet-staking-reward-curve",
@@ -4528,6 +4472,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-offences-benchmarking"
+version = "3.0.0"
+source = "git+https://github.com/paritytech/substrate#e5437efefa82bd8eb567f1245f0a7443ac4e4fe7"
+dependencies = [
+ "frame-benchmarking",
+ "frame-election-provider-support",
+ "frame-support",
+ "frame-system",
+ "pallet-babe",
+ "pallet-balances",
+ "pallet-grandpa",
+ "pallet-im-online",
+ "pallet-offences",
+ "pallet-session",
+ "pallet-staking",
+ "parity-scale-codec",
+ "sp-runtime",
+ "sp-staking",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-proxy"
 version = "3.0.0"
 source = "git+https://github.com/paritytech/substrate#e5437efefa82bd8eb567f1245f0a7443ac4e4fe7"
@@ -4603,6 +4569,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-session-benchmarking"
+version = "3.0.0"
+source = "git+https://github.com/paritytech/substrate#e5437efefa82bd8eb567f1245f0a7443ac4e4fe7"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "pallet-session",
+ "pallet-staking",
+ "rand 0.7.3",
+ "sp-runtime",
+ "sp-session",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-society"
 version = "3.0.0"
 source = "git+https://github.com/paritytech/substrate#e5437efefa82bd8eb567f1245f0a7443ac4e4fe7"
@@ -4620,6 +4602,7 @@ name = "pallet-staking"
 version = "3.0.0"
 source = "git+https://github.com/paritytech/substrate#e5437efefa82bd8eb567f1245f0a7443ac4e4fe7"
 dependencies = [
+ "frame-benchmarking",
  "frame-election-provider-support",
  "frame-support",
  "frame-system",
@@ -4628,6 +4611,7 @@ dependencies = [
  "pallet-session",
  "parity-scale-codec",
  "paste",
+ "rand_chacha 0.2.2",
  "serde",
  "sp-application-crypto",
  "sp-io",
@@ -8403,12 +8387,6 @@ dependencies = [
  "walkdir",
  "wasm-gc-api",
 ]
-
-[[package]]
-name = "substrate-wasm-builder-runner"
-version = "2.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "54cab12167e32b38a62c5ea5825aa0874cde315f907a46aad2b05aa8ef3d862f"
 
 [[package]]
 name = "subtle"

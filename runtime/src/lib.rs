@@ -1098,10 +1098,7 @@ construct_runtime!(
         PolkadexFungibleAsset: polkadex_fungible_assets::{Pallet, Call, Storage, Event<T>},
         SubstrateeRegistry: pallet_substratee_registry::{Pallet, Call, Storage, Event<T>},
         PolkadexOcex: polkadex_ocex::{Pallet, Call, Storage, Config<T>, Event<T>},
-        TokenFaucet: token_faucet_pallet::{Pallet, Call, Event<T>, Storage, ValidateUnsigned},
-        ChainBridge: chainbridge::{Pallet, Call, Storage, Event<T>},
-        Example: example::{Pallet, Call, Event<T>},
-        Erc721: erc721::{Pallet, Call, Storage, Event<T>},
+        TokenFaucet: token_faucet_pallet::{Pallet, Call, Event<T>, Storage, ValidateUnsigned}
     }
 );
 
@@ -1433,7 +1430,7 @@ impl_runtime_apis! {
             add_benchmark!(params, batches, pallet_utility, Utility);
             add_benchmark!(params, batches, pallet_vesting, Vesting);*/
             //polkadex pallets
-            //add_benchmark!(params, batches, token_faucet_pallet, TokenFaucet);
+            add_benchmark!(params, batches, polkadex_ocex, PolkadexOcex);
 
             /*
             PolkadexOcex: polkadex_ocex::{Pallet, Call, Storage, Config<T>, Event<T>},
@@ -1581,40 +1578,6 @@ impl token_faucet_pallet::Config for Runtime {
     type Event = Event;
     type Balance = Balance;
     type Currency = Currencies;
-}
-
-parameter_types! {
-    pub const ChainId: u8 = 1;
-    pub const ProposalLifetime: BlockNumber = 1000;
-}
-
-impl chainbridge::Config for Runtime {
-    type Event = Event;
-    type AdminOrigin = frame_system::EnsureRoot<Self::AccountId>;
-    type Proposal = Call;
-    type ChainId = ChainId;
-    type ProposalLifetime = ProposalLifetime;
-}
-
-parameter_types! {
-    pub HashId: chainbridge::ResourceId = chainbridge::derive_resource_id(1, &blake2_128(b"hash"));
-    pub NativeTokenId: chainbridge::ResourceId = chainbridge::derive_resource_id(0, &blake2_128(b"DAV"));
-    pub NFTTokenId: chainbridge::ResourceId = chainbridge::derive_resource_id(1, &blake2_128(b"NFT"));
-}
-
-impl erc721::Config for Runtime {
-    type Event = Event;
-    type Identifier = NFTTokenId;
-}
-
-impl example::Config for Runtime {
-    type Event = Event;
-    type BridgeOrigin = chainbridge::EnsureBridge<Runtime>;
-    type Balance = Balance;
-    type Currency = Currencies;
-    type HashId = HashId;
-    type NativeTokenId = NativeTokenId;
-    type Erc721Id = NFTTokenId;
 }
 #[cfg(test)]
 mod tests {
