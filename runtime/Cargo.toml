@@ -193,6 +193,7 @@ runtime-benchmarks = [
 	"pallet-session-benchmarking",
 	"token-faucet-pallet/runtime-benchmarks",
 	"polkadex-ocex/runtime-benchmarks",
+	"polkadex-fungible-assets/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
