@@ -21,8 +21,8 @@ benchmarks! {
         let main = origin.clone();
         let max_supply = (1_000_000_000_000_000_000_000_000 as u128).saturated_into();
         let existenial_deposit = (1_000_000_000_000_000_000_000 as u128).saturated_into();
-        let mint_account : T::AccountId = account("mint",1,5);
-        let burn_account : T::AccountId = account("burn",2,5);
+        let mint_account : T::AccountId = origin.clone();
+        let burn_account : T::AccountId = origin.clone();
         let new_asset: T::CurrencyId = currency();
     }: _(RawOrigin::Signed(origin),new_asset,max_supply,Some(mint_account), Some(burn_account),existenial_deposit)
 
@@ -32,8 +32,8 @@ benchmarks! {
         let main = origin.clone();
         let max_supply = (1_000_000_000_000_000_000_000_000 as u128).saturated_into();
         let existenial_deposit = (1_000_000_000_000_000_000_000 as u128).saturated_into();
-        let mint_account : T::AccountId = account("mint",1,5);
-        let burn_account : T::AccountId = account("burn",2,5);
+        let mint_account : T::AccountId = origin.clone();
+        let burn_account : T::AccountId = origin.clone();
         let new_asset: T::CurrencyId = currency();
         PalletModule::<T>::create_token(RawOrigin::Signed(origin.clone()).into(),new_asset.clone(),max_supply,Some(mint_account), Some(burn_account),existenial_deposit);
 
@@ -50,8 +50,8 @@ benchmarks! {
         let main = origin.clone();
         let max_supply = (1_000_000_000_000_000_000_000_000 as u128).saturated_into();
         let existenial_deposit = (1_000_000_000_000_000_000_000 as u128).saturated_into();
-        let mint_account : T::AccountId = account("mint",1,5);
-        let burn_account : T::AccountId = account("burn",2,5);
+        let mint_account : T::AccountId = origin.clone();
+        let burn_account : T::AccountId = origin.clone();
         let new_asset: T::CurrencyId = currency();
         PalletModule::<T>::create_token(RawOrigin::Signed(origin.clone()).into(),new_asset.clone(),max_supply,Some(mint_account), Some(burn_account),existenial_deposit);
 
@@ -74,8 +74,8 @@ benchmarks! {
         let main = origin.clone();
         let max_supply = (1_000_000_000_000_000_000_000_000 as u128).saturated_into();
         let existenial_deposit = (1_000_000_000_000_000_000_000 as u128).saturated_into();
-        let mint_account : T::AccountId = account("mint",1,5);
-        let burn_account : T::AccountId = account("burn",2,5);
+        let mint_account : T::AccountId = origin.clone();
+        let burn_account : T::AccountId = origin.clone();
         let new_asset: T::CurrencyId = currency();
         PalletModule::<T>::create_token(RawOrigin::Signed(origin.clone()).into(),new_asset.clone(),max_supply,Some(mint_account.clone()), Some(burn_account),existenial_deposit);
 
@@ -90,8 +90,8 @@ benchmarks! {
         let main = origin.clone();
         let max_supply = (1_000_000_000_000_000_000_000_000 as u128).saturated_into();
         let existenial_deposit = (1_000_000_000_000_000_000_000 as u128).saturated_into();
-        let mint_account : T::AccountId = account("mint",1,5);
-        let burn_account : T::AccountId = account("burn",2,5);
+        let mint_account : T::AccountId = origin.clone();
+        let burn_account : T::AccountId = origin.clone();
         let new_asset: T::CurrencyId = currency();
         PalletModule::<T>::create_token(RawOrigin::Signed(origin.clone()).into(),new_asset.clone(),max_supply,Some(mint_account.clone()), Some(burn_account.clone()),existenial_deposit);
         let amount = (10_000_000_000_000_000_000_000 as u128).saturated_into();
