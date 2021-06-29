@@ -97,7 +97,7 @@ benchmarks! {
 
     }: {
         //burns all tokens
-        for _ in 0..1000 {
+        for _ in 0..999 {
             let amount = (1_000_000_000_000_000_000_000 as u128).saturated_into();
             PalletModule::<T>::burn_fungible(RawOrigin::Signed(burn_account.clone()).into(), new_asset, amount);
         }
