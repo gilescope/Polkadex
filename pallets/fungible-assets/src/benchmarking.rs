@@ -88,12 +88,18 @@ benchmarks! {
             //Create token
         let origin : T::AccountId = account("user-0",0,5);
         let main = origin.clone();
-        let max_supply = (1_000_000_000_000_000_000_000_000 as u128).saturated_into();
+        let max_supply = ((1_000_000_000_000_000_000_000 * 1000) as u128).saturated_into();
         let existenial_deposit = (1_000_000_000_000_000_000_000 as u128).saturated_into();
         let mint_account : T::AccountId = origin.clone();
         let burn_account : T::AccountId = origin.clone();
         let new_asset: T::CurrencyId = currency();
         PalletModule::<T>::create_token(RawOrigin::Signed(origin.clone()).into(),new_asset.clone(),max_supply,Some(mint_account.clone()), Some(burn_account.clone()),existenial_deposit);
-        let amount = (10_000_000_000_000_000_000_000 as u128).saturated_into();
-    }: _(RawOrigin::Signed(burn_account), new_asset, amount)
+
+    }: {
+        //burns all tokens
+        for _ in 0..1000 {
+            let amount = (1_000_000_000_000_000_000_000 as u128).saturated_into();
+            PalletModule::<T>::burn_fungible(RawOrigin::Signed(burn_account.clone()).into(), new_asset, amount);
+        }
+    }
 }
