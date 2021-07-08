@@ -1476,7 +1476,7 @@ impl EnsureOrigin<Origin> for EnsureGovernance {
 
     #[cfg(feature = "runtime-benchmarks")]
     fn successful_origin() -> Origin {
-        Origin::from(RawOrigin::Signed(Default::default()))
+        Origin::from(RawOrigin::Signed(MODULE_ID.into_account()))
     }
 }
 
