@@ -13,8 +13,8 @@ use codec::{Decode, Encode};
 use sp_io::hashing::blake2_256;
 use sp_core::H160;
 
-pub fn currency<CurrencyId: Decode>() -> CurrencyId {
-    let new_asset_chainsafe: AssetId = AssetId::DOT;
+pub fn currency<CurrencyId: Decode>(id : u64) -> CurrencyId {
+    let new_asset_chainsafe: AssetId = AssetId::CHAINSAFE(H160::from_low_u64_be(id));
     let currency_raw = (new_asset_chainsafe).encode();
     CurrencyId::decode(&mut &currency_raw[..]).unwrap()
 }
@@ -33,7 +33,7 @@ fn create_asset_token<T: Config>(max_supply : u128, existenial_deposit : u128 ) 
     let existenial_deposit = existenial_deposit.saturated_into();
     let mint_account : T::AccountId = origin.clone();
     let burn_account : T::AccountId = origin.clone();
-    let new_asset: T::CurrencyId = currency();
+    let new_asset: T::CurrencyId = currency(567);
     PalletModule::<T>::create_token(RawOrigin::Signed(origin.clone()).into(),new_asset.clone(),max_supply,Some(mint_account.clone()), Some(burn_account.clone()),existenial_deposit);
 }
 
@@ -45,7 +45,7 @@ benchmarks! {
         let existenial_deposit = (1_000_000_000_000_000_000_000 as u128).saturated_into();
         let mint_account : T::AccountId = origin.clone();
         let burn_account : T::AccountId = origin.clone();
-        let new_asset: T::CurrencyId = currency();
+        let new_asset: T::CurrencyId = currency(20);
     }: _(RawOrigin::Signed(origin),new_asset,max_supply,Some(mint_account), Some(burn_account),existenial_deposit)
 
     set_vesting_info {
@@ -56,7 +56,7 @@ benchmarks! {
         let existenial_deposit = (1_000_000_000_000_000_000_000 as u128).saturated_into();
         let mint_account : T::AccountId = origin.clone();
         let burn_account : T::AccountId = origin.clone();
-        let new_asset: T::CurrencyId = currency();
+        let new_asset: T::CurrencyId = currency(10);
         PalletModule::<T>::create_token(RawOrigin::Signed(origin.clone()).into(),new_asset.clone(),max_supply,Some(mint_account), Some(burn_account),existenial_deposit);
 
             //
@@ -74,7 +74,7 @@ benchmarks! {
         let existenial_deposit = (1_000_000_000_000_000_000_000 as u128).saturated_into();
         let mint_account : T::AccountId = origin.clone();
         let burn_account : T::AccountId = origin.clone();
-        let new_asset: T::CurrencyId = currency();
+        let new_asset: T::CurrencyId = currency(60);
         PalletModule::<T>::create_token(RawOrigin::Signed(origin.clone()).into(),new_asset.clone(),max_supply,Some(mint_account), Some(burn_account),existenial_deposit);
 
             //
@@ -98,7 +98,7 @@ benchmarks! {
         let existenial_deposit = (1_000_000_000_000_000_000_000 as u128).saturated_into();
         let mint_account : T::AccountId = origin.clone();
         let burn_account : T::AccountId = origin.clone();
-        let new_asset: T::CurrencyId = currency();
+        let new_asset: T::CurrencyId = currency(15);
         PalletModule::<T>::create_token(RawOrigin::Signed(origin.clone()).into(),new_asset.clone(),max_supply,Some(mint_account.clone()), Some(burn_account),existenial_deposit);
 
             //
@@ -114,7 +114,7 @@ benchmarks! {
         let existenial_deposit = (1_000_000_000_000_000_000_000 as u128).saturated_into();
         let mint_account : T::AccountId = origin.clone();
         let burn_account : T::AccountId = origin.clone();
-        let new_asset: T::CurrencyId = currency();
+        let new_asset: T::CurrencyId = currency(156);
         PalletModule::<T>::create_token(RawOrigin::Signed(origin.clone()).into(),new_asset.clone(),max_supply,Some(mint_account.clone()), Some(burn_account.clone()),existenial_deposit);
 
     }: {
@@ -128,7 +128,7 @@ benchmarks! {
     attest_token {
         create_asset_token::<T>(1_000_000_000_000_000_000_000,1_000_000_000_000_000_000_000);
         let origin = T::GovernanceOrigin::successful_origin();
-        let asset_id : T::CurrencyId = currency();
+        let asset_id : T::CurrencyId = currency(567);
         let call = Call::<T>::attest_token(asset_id.clone());
     }: {
         call.dispatch_bypass_filter(origin)?

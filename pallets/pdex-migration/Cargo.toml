@@ -18,6 +18,9 @@ pallet-balances = { default-features = false, version = '3.0.0' , git = "https:/
 frame-system = { default-features = false, version = '3.0.0', git = "https://github.com/paritytech/substrate.git"  }
 polkadex-primitives = { git = "https://github.com/Polkadex-Substrate/polkadex-primitives.git", branch = 'main', default-features = false }
 orml-traits = { git = "https://github.com/Polkadex-Substrate/open-runtime-module-library.git", default-features = false }
+frame-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, optional = true }
+sp-std = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git'}
+pallet-eth-dispatch = { package = "artemis-dispatch", git = "https://github.com/Polkadex-Substrate/polkadot-ethereum", default-features = false, rev = "6ac2106a608bf11c53981b67a106c2afd43bbee6" }
 
 [features]
 default = ['std']
@@ -27,5 +30,8 @@ std = [
     'frame-system/std',
     'sp-runtime/std',
     'orml-traits/std',
+    "sp-std/std",
+    'pallet-eth-dispatch/std',
     'polkadex-primitives/std',
 ]
+runtime-benchmarks = ["frame-benchmarking"]

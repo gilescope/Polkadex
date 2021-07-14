@@ -18,6 +18,8 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+
+
 use frame_support::pallet_prelude::*;
 use frame_support::sp_runtime::traits::AtLeast32BitUnsigned;
 use frame_support::sp_runtime::SaturatedConversion;
@@ -29,6 +31,10 @@ use orml_traits::{MultiCurrency, MultiCurrencyExtended};
 use polkadex_primitives::assets::AssetId;
 use sp_core::{H160, U256};
 use sp_runtime::traits::StaticLookup;
+
+#[cfg(feature = "runtime-benchmarks")]
+mod benchmarking;
+mod weights;
 
 /// Configure the pallet by specifying the parameters and types on which it depends.
 pub trait Config: frame_system::Config {

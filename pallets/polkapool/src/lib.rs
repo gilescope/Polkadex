@@ -18,6 +18,9 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+#[cfg(feature = "runtime-benchmarks")]
+mod benchmarking;
+
 use codec::Codec;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo};
 use frame_support::pallet_prelude::*;
