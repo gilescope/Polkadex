@@ -20,6 +20,7 @@
 
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarking;
+pub mod weights;
 
 use codec::Codec;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo};
@@ -44,6 +45,7 @@ use sp_arithmetic::traits::{Bounded, One, SaturatedConversion, Saturating, Zero}
 use sp_core::H256;
 use sp_std::boxed::Box;
 use sp_std::vec::Vec;
+use weights::WeightInfo;
 
 /// Configure the pallet by specifying the parameters and types on which it depends.
 pub trait Config: frame_system::Config {
@@ -94,6 +96,8 @@ pub trait Config: frame_system::Config {
     type MinStakePerWeight: Get<u128>;
 
     type GovernanceOrigin: EnsureOrigin<<Self as Config>::Origin, Success = Self::AccountId>;
+
+    type PalletWeightInfo : WeightInfo;
 }
 
 #[derive(Decode, Encode, Copy, Clone)]
@@ -259,7 +263,7 @@ decl_module! {
         /// ## Claim Fee-less Transaction
         /// * `stake_amount`: Amount to stake for the given call
         /// * `call`: Call from Contracts Pallet
-        #[weight = 10_000 + T::DbWeight::get().writes(1)]
+        #[weight = T::PalletWeightInfo::claim_feeless_transaction()]
         pub fn claim_feeless_transaction(origin, stake_amount: <T as Config>::Balance, call: Box<<T as Config>::Call>) -> dispatch::DispatchResult {
             let who = ensure_signed(origin.clone())?;
             ensure!(origin.clone().into().is_ok(),Error::<T>::BadOrigin);
@@ -311,7 +315,7 @@ decl_module! {
 
         /// ## Unstake
         /// Returns staked tokens back to origin if `origin` is a staked user
-        #[weight = 10000]
+        #[weight = T::PalletWeightInfo::unstake()]
         pub fn unstake(origin) -> DispatchResult {
             let who = ensure_signed(origin.clone())?;
             ensure!(origin.clone().into().is_ok(),Error::<T>::BadOrigin);
@@ -326,7 +330,7 @@ decl_module! {
 
         /// ## Slash Stake
         /// Slash stake of account by the Governance
-        #[weight = 10000]
+        #[weight = T::PalletWeightInfo::slash_stake()]
         pub fn slash_stake(origin, account: T::AccountId) -> DispatchResult {
             let origin = <T as Config>::Origin::from(origin);
             T::GovernanceOrigin::ensure_origin(origin)?;

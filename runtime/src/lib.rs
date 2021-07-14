@@ -1079,6 +1079,7 @@ impl pallet_polkapool::Config for Runtime {
     type MinStakePerWeight = MinStakePerWeight;
     type GovernanceOrigin = EnsureGovernance;
     type MinStakePeriodPerWeight = ();
+    type PalletWeightInfo = pallet_polkapool::weights::PalletWeightInfo<Runtime>;
 }
 
 impl pallet_gilt::Config for Runtime {
@@ -1150,6 +1151,7 @@ impl erc20_pdex_migration_pallet::Config for Runtime {
     type Balance = Balance;
     type Currency = Currencies;
     type CallOrigin = EnsureEthereumAccount;
+    type PalletWeightInfo = erc20_pdex_migration_pallet::weights::PalletWeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -1707,6 +1709,7 @@ impl polkadex_ocex::Config for Runtime {
     type GenesisAccount = OCEXGenesisAccount;
     type Currency = Currencies;
     type ProxyLimit = ProxyLimit;
+    type PalletWeightInfo = polkadex_ocex::weights::PalletWeightInfo<Runtime>;
 }
 
 impl token_faucet_pallet::Config for Runtime {

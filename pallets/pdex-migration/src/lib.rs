@@ -31,10 +31,11 @@ use orml_traits::{MultiCurrency, MultiCurrencyExtended};
 use polkadex_primitives::assets::AssetId;
 use sp_core::{H160, U256};
 use sp_runtime::traits::StaticLookup;
+use crate::weights::WeightInfo;
 
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarking;
-mod weights;
+pub mod weights;
 
 /// Configure the pallet by specifying the parameters and types on which it depends.
 pub trait Config: frame_system::Config {
@@ -55,6 +56,8 @@ pub trait Config: frame_system::Config {
     >;
 
     type CallOrigin: EnsureOrigin<Self::Origin, Success = H160>;
+
+    type PalletWeightInfo : WeightInfo;
 }
 
 decl_storage! {
@@ -94,7 +97,7 @@ decl_module! {
 
         fn deposit_event() = default;
 
-        #[weight = 10000]
+        #[weight = T::PalletWeightInfo::mint()]
         pub fn mint(origin, token: H160, sender: H160, recipient: <T::Lookup as StaticLookup>::Source, amount: U256) -> DispatchResult {
             let who = T::CallOrigin::ensure_origin(origin)?;
             if who != Address::get() {

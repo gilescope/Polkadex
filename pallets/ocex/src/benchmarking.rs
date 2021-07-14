@@ -6,6 +6,7 @@ use orml_traits::{MultiCurrency, MultiCurrencyExtended};
 use crate::{*, Module as PalletModule};
 use frame_benchmarking::{benchmarks, account, impl_benchmark_test_suite};
 use frame_system::RawOrigin;
+
 benchmarks! {
     deposit {
         let main : T::AccountId = account("user-0",0,5);
@@ -27,6 +28,17 @@ benchmarks! {
         let origin : T::AccountId = account("user-0",0,5);
         let main = origin.clone();
     }: _(RawOrigin::Signed(origin),main)
+
+    release {
+        let origin : T::AccountId = account("user-0",0,5);
+        let to : T::AccountId = account("user-4",6,7);
+        let main = origin.clone();
+        let amount = (4000000000000000000 as u128).saturated_into();
+        <T as Config>::Currency::deposit(AssetId::POLKADEX,&main,amount);
+        PalletModule::<T>::deposit(RawOrigin::Signed(main.clone()).into(),main.clone(),AssetId::POLKADEX, (2000000000000000000 as u128).saturated_into());
+        pallet_substratee_registry::EnclaveIndex::<T>::insert(main.clone(), 1_u64);
+    }: _(RawOrigin::Signed(origin),AssetId::POLKADEX, (1000000000000000000 as u128).saturated_into(), to)
+
     add_proxy {
         let main : T::AccountId = account("user-1",6,500);
         let to = main.clone();

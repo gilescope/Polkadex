@@ -36,6 +36,7 @@ use orml_traits::arithmetic::{CheckedAdd, CheckedSub};
 use orml_traits::{
     BasicCurrency, BasicCurrencyExtended, BasicLockableCurrency, BasicReservableCurrency,
 };
+use crate::weights::WeightInfo;
 
 #[cfg(test)]
 mod mock;
@@ -45,6 +46,7 @@ mod test;
 
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarking;
+pub mod weights;
 
 pub(crate) type BalanceOf<T> = <T as orml_tokens::Config>::Balance;
 
@@ -56,6 +58,8 @@ pub trait Config: system::Config + orml_tokens::Config {
     type NativeCurrency: BasicCurrencyExtended<Self::AccountId, Balance = BalanceOf<Self>>
         + BasicLockableCurrency<Self::AccountId, Balance = BalanceOf<Self>>
         + BasicReservableCurrency<Self::AccountId, Balance = BalanceOf<Self>>;
+
+    type PalletWeightInfo : WeightInfo;
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, Debug)]
@@ -189,7 +193,7 @@ decl_module! {
         /// * `mint_account`: Account which can mint amount for given Asset id
         /// * `burn_account`: Account which can burn amount for given Asset id
         /// * `existenial_deposit`: Existential Deposit
-        #[weight = 10000]
+        #[weight = T::PalletWeightInfo::create_token()]
         pub fn create_token(origin,
                         asset_id: T::CurrencyId,
                         max_supply: T::Balance,
@@ -220,7 +224,7 @@ decl_module! {
         /// * `asset_id`: Asset Id for which creator wants to set Vesting Info
         /// * `rate`: Rate at which transfer of amount will take place
         /// * `account`: Destination Account
-        #[weight = 10000]
+        #[weight = T::PalletWeightInfo::set_vesting_info()]
         pub fn set_vesting_info(origin, amount: T::Balance, asset_id: T::CurrencyId, rate: T::Balance, account: T::AccountId) -> DispatchResult {
             let who: T::AccountId = ensure_signed(origin)?;
             let asset_info: AssetInfo<T> = <InfoAsset<T>>::get(asset_id);
@@ -239,7 +243,7 @@ decl_module! {
         ///
         /// * `identifier`: Usual identifier which helps to find Vestion info of Given Asset Id
         /// * `asset_id`: Asset Id for which creator wants to set Vesting Info
-        #[weight = 10000]
+        #[weight = T::PalletWeightInfo::claim_vesting()]
         pub fn claim_vesting(origin, identifier: T::Hash, asset_id: T::CurrencyId) -> DispatchResult {
             let who: T::AccountId = ensure_signed(origin)?;
             let current_block_no = <system::Module<T>>::block_number();
@@ -286,7 +290,7 @@ decl_module! {
         /// * `to`: Destination account to which minted amount is going to be transferred
         /// * `asset_id`: Asset Id
         /// * `amount`: Amount which is going to be minted for given Asset Id
-        #[weight = 10000]
+        #[weight = T::PalletWeightInfo::mint_fungible()]
         pub fn mint_fungible(origin, to: T::AccountId, asset_id: T::CurrencyId, amount: T::Balance) -> DispatchResult {
             let who: T::AccountId = ensure_signed(origin)?;
             Self::mint_token(&who, &to,asset_id, amount)?;
@@ -302,7 +306,7 @@ decl_module! {
         ///
         /// * `asset_id`: Asset Id
         /// * `amount`: Amount which is going to be burned for given Asset Id
-        #[weight = 10000]
+        #[weight = T::PalletWeightInfo::burn_fungible()]
         pub fn burn_fungible(origin, asset_id: T::CurrencyId, amount: T::Balance) -> DispatchResult {
             let who: T::AccountId = ensure_signed(origin)?;
             Self::burn_token(&who,asset_id, amount)?;
@@ -316,7 +320,7 @@ decl_module! {
         /// # Parameters
         ///
         /// * `asset_id`: Asset Id to be Verified
-        #[weight = 10000]
+        #[weight = T::PalletWeightInfo::attest_token()]
         pub fn attest_token(origin, asset_id: T::CurrencyId) -> DispatchResult {
             T::GovernanceOrigin::ensure_origin(origin)?;
             ensure!(<InfoAsset<T>>::contains_key(&asset_id), <Error<T>>::AssetIdNotExists);
@@ -333,7 +337,7 @@ decl_module! {
         /// # Parameters
         ///
         /// * `pdx_amount`: New Token Deposit Amount
-        #[weight = 10000]
+        #[weight = T::PalletWeightInfo::modify_token_deposit_amount()]
         pub fn modify_token_deposit_amount(origin, pdx_amount: T::Balance) -> DispatchResult {
             T::GovernanceOrigin::ensure_origin(origin)?;
             <FixedPDXAmount<T>>::put::<T::Balance>(pdx_amount);

@@ -31,6 +31,7 @@ use sp_runtime::traits::AccountIdConversion;
 use sp_std::prelude::*;
 
 use polkadex_primitives::assets::AssetId;
+use crate::weights::WeightInfo;
 
 #[cfg(test)]
 mod mock;
@@ -39,6 +40,8 @@ mod mock;
 mod test;
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarking;
+
+pub mod weights;
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, Debug)]
 pub struct LinkedAccount<T: Config> {
@@ -86,6 +89,8 @@ pub trait Config:
         Balance = Self::Balance,
     >;
     type ProxyLimit: Get<usize>;
+
+    type PalletWeightInfo: WeightInfo;
 }
 
 decl_event!(
@@ -145,7 +150,7 @@ decl_module! {
         /// * `main`: Account from which amount is to be transferred
         /// * `asset_id`: Asset Id
         /// * `amount`: Amount to be transferred to Enclave
-        #[weight = 10000]
+        #[weight = T::PalletWeightInfo::deposit()]
         pub fn deposit(origin, main: T::AccountId, asset_id:  AssetId, amount: T::Balance) -> DispatchResult{
             let from: T::AccountId = ensure_signed(origin)?;
             ensure!(main==from, Error::<T>::MainAccountSignatureNotFound);
@@ -162,7 +167,7 @@ decl_module! {
         /// * `asset_id`: Asset Id
         /// * `amount`: Amount to be released
         /// * `to`: Destination Account
-        #[weight = 10000]
+        #[weight = T::PalletWeightInfo::release()]
         pub fn release(origin, asset_id:  AssetId, amount: T::Balance, to: T::AccountId) -> DispatchResult{
             let sender: T::AccountId = ensure_signed(origin)?;
             ensure!(pallet_substratee_registry::EnclaveIndex::<T>::contains_key(&sender), Error::<T>::NotARegisteredEnclave);
@@ -180,7 +185,7 @@ decl_module! {
         /// * `main`: Account which wants to Notify Enclave
         /// * `asset_id`: Asset Id
         /// * `amount`: Amount to be notified to Enclave
-        #[weight = 10000]
+        #[weight = T::PalletWeightInfo::withdraw()]
         pub fn withdraw(origin,  main: T::AccountId, asset_id:  AssetId, amount: T::Balance) -> DispatchResult{
             let sender: T::AccountId = ensure_signed(origin)?;
             ensure!(main==sender, Error::<T>::MainAccountSignatureNotFound);
@@ -193,7 +198,7 @@ decl_module! {
         /// # Parameter
         ///
         /// * `main`: Main Account to be registered
-        #[weight = 10000]
+        #[weight = T::PalletWeightInfo::register()]
         pub fn register(origin, main: T::AccountId) -> DispatchResult{
             let sender: T::AccountId = ensure_signed(origin)?;
             ensure!(main==sender, Error::<T>::MainAccountSignatureNotFound);
@@ -209,7 +214,7 @@ decl_module! {
         ///
         /// * `main`: Main Account for which Proxy Account is to be added
         /// * `proxy`: Proxy Account to be added
-        #[weight = 10000]
+        #[weight = T::PalletWeightInfo::add_proxy()]
         pub fn add_proxy(origin, main: T::AccountId, proxy: T::AccountId) -> DispatchResult{
             let sender: T::AccountId = ensure_signed(origin)?;
             ensure!(main==sender, Error::<T>::MainAccountSignatureNotFound);
@@ -225,7 +230,7 @@ decl_module! {
         ///
         /// * `main`: Main Account for which Proxy Account is to be removed
         /// * `proxy`: Proxy Account to be removed
-        #[weight = 10000]
+        #[weight = T::PalletWeightInfo::remove_proxy()]
         pub fn remove_proxy(origin, main: T::AccountId, proxy: T::AccountId) -> DispatchResult{
             let sender: T::AccountId = ensure_signed(origin)?;
             ensure!(main==sender, Error::<T>::MainAccountSignatureNotFound);
