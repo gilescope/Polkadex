@@ -267,7 +267,7 @@ decl_module! {
         ///
         /// * `asset_id`: Asset Id for which creator wants to set Metadata
         /// * `metadata`: Metadata to be set for given Asset Id
-        #[weight = 10000]
+        #[weight = T::PalletWeightInfo::set_metadata_fungible()]
         pub fn set_metadata_fungible(origin, asset_id: T::CurrencyId, metadata: AssetMetadata) -> DispatchResult {
             let who: T::AccountId = ensure_signed(origin)?;
             ensure!(<InfoAsset<T>>::contains_key(&asset_id), <Error<T>>::AssetIdNotExists);

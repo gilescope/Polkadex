@@ -111,22 +111,22 @@ token-faucet-pallet = { path = "../pallets/token-faucet", default-features = fal
 erc20-pdex-migration-pallet = { path = "../pallets/pdex-migration", default-features = false }
 polkadex-ido = { path = "../pallets/Polkadex_Ido", default-features = false }
 
-#[dependencies.chainbridge]
-#default-features = false
-#git = 'https://github.com/Polkadex-Substrate/chainbridge-substrate'
-#branch = 'main'
+[dependencies.chainbridge]
+default-features = false
+git = 'https://github.com/Polkadex-Substrate/chainbridge-substrate'
+branch = 'main'
 
-#[dependencies.example]
-#default-features = false
-#git = 'https://github.com/Polkadex-Substrate/chainbridge-substrate'
-#package = 'example-pallet'
-#branch = 'main'
+[dependencies.example]
+default-features = false
+git = 'https://github.com/Polkadex-Substrate/chainbridge-substrate'
+package = 'example-pallet'
+branch = 'main'
 
-#[dependencies.erc721]
-#default-features = false
-#git = 'https://github.com/Polkadex-Substrate/chainbridge-substrate'
-#package = 'example-erc721'
-#branch = 'main'
+[dependencies.erc721]
+default-features = false
+git = 'https://github.com/Polkadex-Substrate/chainbridge-substrate'
+package = 'example-erc721'
+branch = 'main'
 
 [build-dependencies]
 substrate-wasm-builder = { version = "4.0.0", git = "https://github.com/paritytech/substrate.git" }
@@ -203,9 +203,9 @@ std = [
     "polkadex-ocex/std",
     "pallet-polkapool/std",
 	"token-faucet-pallet/std",
-    #"chainbridge/std",
-    #'erc721/std',
-    #'example/std',
+    "chainbridge/std",
+    'erc721/std',
+    'example/std',
 	'polkadex-ido/std'
 ]
 runtime-benchmarks = [

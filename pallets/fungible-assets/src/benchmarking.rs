@@ -125,6 +125,28 @@ benchmarks! {
         }
     }
 
+    set_metadata_fungible {
+            //Create token
+        let origin : T::AccountId = account("user-0",0,5);
+        let main = origin.clone();
+        let max_supply = (1_000_000_000_000_000_000_000_000 as u128).saturated_into();
+        let existenial_deposit = (1_000_000_000_000_000_000_000 as u128).saturated_into();
+        let mint_account : T::AccountId = origin.clone();
+        let burn_account : T::AccountId = origin.clone();
+        let new_asset: T::CurrencyId = currency(15);
+        PalletModule::<T>::create_token(RawOrigin::Signed(origin.clone()).into(),new_asset.clone(),max_supply,Some(mint_account.clone()), Some(burn_account),existenial_deposit);
+
+        let metadata = AssetMetadata{
+            name : "asset".as_bytes().to_vec(),
+            website : "asset.example.com".as_bytes().to_vec(),
+            team : "Team A".as_bytes().to_vec(),
+        };
+    }: _(RawOrigin::Signed(origin),new_asset, metadata)
+    verify {
+		assert_last_event::<T>(Event::<T>::MetadataAdded(new_asset, main).into());
+	}
+
+
     attest_token {
         create_asset_token::<T>(1_000_000_000_000_000_000_000,1_000_000_000_000_000_000_000);
         let origin = T::GovernanceOrigin::successful_origin();

@@ -42,6 +42,7 @@ pub trait WeightInfo {
     fn burn_fungible() -> Weight;
     fn attest_token() -> Weight;
     fn modify_token_deposit_amount() -> Weight;
+    fn set_metadata_fungible() -> Weight;
 }
 
 /// Weight functions for polkadex_fungible_assets.
@@ -79,6 +80,12 @@ impl<T: frame_system::Config> WeightInfo for PalletWeightInfo<T> {
     }
     fn modify_token_deposit_amount() -> Weight {
         (18_839_000 as Weight)
+            .saturating_add(T::DbWeight::get().writes(1 as Weight))
+    }
+
+    fn set_metadata_fungible() -> Weight {
+        (36_351_000 as Weight)
+            .saturating_add(T::DbWeight::get().reads(1 as Weight))
             .saturating_add(T::DbWeight::get().writes(1 as Weight))
     }
 }

@@ -868,6 +868,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "chainbridge"
+version = "0.0.2"
+source = "git+https://github.com/Polkadex-Substrate/chainbridge-substrate?branch=main#a781bdb844233c78c7b81f0646a78ddb1f870626"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "pallet-balances",
+ "parity-scale-codec",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "substrate-wasm-builder-runner",
+]
+
+[[package]]
 name = "chrono"
 version = "0.4.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1634,6 +1651,44 @@ name = "event-listener"
 version = "2.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f7531096570974c3a9dcf9e4b8e1cede1ec26cf5046219fb3b9d897503b9be59"
+
+[[package]]
+name = "example-erc721"
+version = "0.0.1"
+source = "git+https://github.com/Polkadex-Substrate/chainbridge-substrate?branch=main#a781bdb844233c78c7b81f0646a78ddb1f870626"
+dependencies = [
+ "chainbridge",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "substrate-wasm-builder-runner",
+]
+
+[[package]]
+name = "example-pallet"
+version = "0.0.1"
+source = "git+https://github.com/Polkadex-Substrate/chainbridge-substrate?branch=main#a781bdb844233c78c7b81f0646a78ddb1f870626"
+dependencies = [
+ "chainbridge",
+ "example-erc721",
+ "frame-support",
+ "frame-system",
+ "orml-traits",
+ "parity-scale-codec",
+ "polkadex-primitives",
+ "serde",
+ "sp-arithmetic",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "substrate-wasm-builder-runner",
+]
 
 [[package]]
 name = "exit-future"
@@ -3961,7 +4016,10 @@ dependencies = [
  "artemis-basic-channel",
  "artemis-core",
  "artemis-dispatch",
+ "chainbridge",
  "erc20-pdex-migration-pallet",
+ "example-erc721",
+ "example-pallet",
  "frame-benchmarking",
  "frame-executive",
  "frame-support",
@@ -8666,6 +8724,12 @@ dependencies = [
  "walkdir",
  "wasm-gc-api",
 ]
+
+[[package]]
+name = "substrate-wasm-builder-runner"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "54cab12167e32b38a62c5ea5825aa0874cde315f907a46aad2b05aa8ef3d862f"
 
 [[package]]
 name = "subtle"

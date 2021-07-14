@@ -1221,9 +1221,9 @@ construct_runtime!(
         SubstrateeRegistry: pallet_substratee_registry::{Pallet, Call, Storage, Event<T>},
         PolkadexOcex: polkadex_ocex::{Pallet, Call, Storage, Config<T>, Event<T>},
         TokenFaucet: token_faucet_pallet::{Pallet, Call, Event<T>, Storage, ValidateUnsigned},
-        /*ChainBridge: chainbridge::{Pallet, Call, Storage, Event<T>},
+        ChainBridge: chainbridge::{Pallet, Call, Storage, Event<T>},
         Example: example::{Pallet, Call, Event<T>},
-        Erc721: erc721::{Pallet, Call, Storage, Event<T>},*/
+        Erc721: erc721::{Pallet, Call, Storage, Event<T>},
         BasicInboundChannel: basic_channel_inbound::{Pallet, Call, Config, Storage, Event},
         Dispatch: pallet_eth_dispatch::{Pallet, Call, Storage, Event<T>, Origin},
         VerifierLightclient: pallet_verifier_lightclient::{Pallet, Call, Storage, Event, Config},
@@ -1532,7 +1532,7 @@ impl_runtime_apis! {
             let mut batches = Vec::<BenchmarkBatch>::new();
             let params = (&config, &whitelist);
 
-            /*add_benchmark!(params, batches, pallet_assets, Assets);
+            add_benchmark!(params, batches, pallet_assets, Assets);
             add_benchmark!(params, batches, pallet_babe, Babe);
             add_benchmark!(params, batches, pallet_balances, Balances);
             add_benchmark!(params, batches, pallet_bounties, Bounties);
@@ -1559,21 +1559,14 @@ impl_runtime_apis! {
             add_benchmark!(params, batches, pallet_timestamp, Timestamp);
             add_benchmark!(params, batches, pallet_treasury, Treasury);
             add_benchmark!(params, batches, pallet_utility, Utility);
-            add_benchmark!(params, batches, pallet_vesting, Vesting);*/
+            add_benchmark!(params, batches, pallet_vesting, Vesting);
             //polkadex pallets
             add_benchmark!(params, batches, polkadex_ocex, PolkadexOcex);
             add_benchmark!(params, batches, polkadex_fungible_assets, PolkadexFungibleAsset);
             add_benchmark!(params, batches, erc20_pdex_migration_pallet, ERC20PDEX);
             add_benchmark!(params, batches, pallet_polkapool, Polkapool);
-            //add_benchmark!(params, batches, polkadex_ido, PolkadexIdo);
+            add_benchmark!(params, batches, polkadex_ido, PolkadexIdo);
 
-            /*
-            PolkadexOcex: polkadex_ocex::{Pallet, Call, Storage, Config<T>, Event<T>},
-        TokenFaucet: token_faucet_pallet::{Pallet, Call, Event<T>, Storage, ValidateUnsigned},
-        ChainBridge: chainbridge::{Pallet, Call, Storage, Event<T>},
-        Example: example::{Pallet, Call, Event<T>},
-        Erc721: erc721::{Pallet, Call, Storage, Event<T>},
-             */
 
             if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
             Ok(batches)
@@ -1620,6 +1613,7 @@ impl polkadex_fungible_assets::Config for Runtime {
     type TreasuryAccountId = TreasuryAccountId;
     type GovernanceOrigin = EnsureGovernance;
     type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, BlockNumber>;
+    type PalletWeightInfo = polkadex_fungible_assets::weights::PalletWeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -1718,7 +1712,7 @@ impl token_faucet_pallet::Config for Runtime {
     type Currency = Currencies;
 }
 
-/*parameter_types! {
+parameter_types! {
     pub const ChainId: u8 = 1;
     pub const ProposalLifetime: BlockNumber = 1000;
 }
@@ -1751,7 +1745,7 @@ impl example::Config for Runtime {
     type NativeTokenId = NativeTokenId;
     type Erc721Id = NFTTokenId;
 }
-*/
+
 #[cfg(test)]
 mod tests {
     use frame_system::offchain::CreateSignedTransaction;
