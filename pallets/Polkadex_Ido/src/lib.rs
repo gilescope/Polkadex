@@ -58,9 +58,8 @@ use sp_runtime::SaturatedConversion;
 use sp_std::prelude::*;
 use sp_std::collections::btree_map::BTreeMap;
 use sp_std::collections::btree_set::BTreeSet;
-use rand::{Rng, seq::SliceRandom, SeedableRng};
+use rand::{Rng, SeedableRng};
 use rand_chacha::ChaChaRng;
-use polkadex_primitives::BlockNumber;
 use sp_core::H256;
 
 #[cfg(feature = "runtime-benchmarks")]
