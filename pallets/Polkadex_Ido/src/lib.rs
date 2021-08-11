@@ -364,6 +364,7 @@ decl_module! {
             let max_amount = <WhiteListInvestors<T>>::get(round_id, investor_address.clone());
             ensure!(amount >= max_amount, Error::<T>::NotAValidAmount);
             ensure!(<InfoInvestor<T>>::contains_key(&investor_address), <Error<T>>::InvestorDoesNotExist);
+            ensure!(!<InvestorShareInfo<T>>::contains_key(&round_id,&investor_address), <Error<T>>::InvestorAlreadyParticipated);
             let funding_round = <InfoFundingRound<T>>::get(round_id);
             ensure!(current_block_no < funding_round.close_round_block && current_block_no > funding_round.start_block, <Error<T>>::NotAllowed);
             let total_raise = funding_round.amount.saturating_mul(funding_round.token_a_priceper_token_b);
@@ -569,7 +570,9 @@ decl_error! {
         /// Investor already shown interest
         InvestorAlreadyShownInterest,
         /// Investor Account Balance doesnt match interest amount
-        BalanceInsufficientForInteresetedAmount
+        BalanceInsufficientForInteresetedAmount,
+        /// Investor already participated in a round error
+        InvestorAlreadyParticipated
     }
 }
 
