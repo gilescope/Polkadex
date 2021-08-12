@@ -180,6 +180,29 @@ impl<T: Config> FundingRound<T> {
     }
 }
 
+#[derive(Decode, Encode, Clone)]
+pub struct Voter<T: Config> {
+    pub account_id : T::AccountId,
+    pub unlocking_block: T::BlockNumber,
+    pub votes: T::Balance,
+}
+
+
+#[derive(Decode, Encode, Clone)]
+pub struct Votes<T: Config> {
+    ayes: Vec<Voter<T>>,
+    nays: Vec<Voter<T>>,
+}
+
+impl<T: Config> Default for Votes<T> {
+    fn default() -> Self {
+        Votes {
+            ayes: Vec::new(),
+            nays: Vec::new(),
+        }
+    }
+}
+
 decl_storage! {
     trait Store for Module<T: Config> as PolkadexIdo {
         /// A mapping of Investor and its KYC status
@@ -198,6 +221,10 @@ decl_storage! {
         InfoClaimAmount get(fn get_claim_amount): map hasher(identity) T::AccountId => T::Balance;
         /// A mapping between funding round id and its InterestedParticipants
         InterestedParticipants get(fn get_interested_particpants): map hasher(identity) T::Hash => Vec<T::AccountId>;
+        ///
+        WhiteListedRounds get(fn get_whitelisted_round): map hasher(identity) T::Hash => T::Hash;
+
+        RoundVotes get(fn get_round_votes): map hasher(identity) T::Hash => Votes<T>;
     }
     add_extra_genesis {
         config(endowed_accounts): Vec<(T::AccountId, T::CurrencyId, T::Balance)>;
@@ -440,6 +467,25 @@ decl_module! {
             Ok(())
         }
 
+         #[weight = 10000]
+        pub fn vote(origin, round_id: T::Hash, vote_multiplier: u8, approve : bool) -> DispatchResult {
+            ensure!(vote_multiplier <=  6,  Error::<T>::PeriodError);
+            let who: T::AccountId = ensure_signed(origin)?;
+            ensure!(<InfoFundingRound<T>>::contains_key(&round_id), Error::<T>::FundingRoundDoesNotExist);
+            let voting = <RoundVotes<T>>::get(&round_id);
+            let position_yes = voting.ayes.iter().position(|a| a.account_id == &who);
+            let position_no = voting.nays.iter().position(|a| a.account_id == &who);
+            // Detects first vote of the member in the motion
+            let is_account_voting_first_time = position_yes.is_none() && position_no.is_none();
+
+
+            <RoundVotes<T>>::mutate(&round_id, |voting| {
+
+            });
+
+            Ok(())
+        }
+
         /// Transfers the remaining tokens to another address,
         /// only the round creator can call this or the governance.
         ///
@@ -519,7 +565,9 @@ decl_error! {
         /// Withdraw Error
         WithdrawError,
         /// Investor already participated in a round error
-        InvestorAlreadyParticipated
+        InvestorAlreadyParticipated,
+        ///
+        PeriodError
     }
 }
 
@@ -534,5 +582,17 @@ impl<T: Config> Module<T> {
 
     pub fn round_account_id(hash: T::Hash) -> T::AccountId {
         T::ModuleId::get().into_sub_account(hash)
+    }
+
+    pub fn vote_multiplier_to_block_number(multiplier : u8 ) -> T::BlockNumber {
+        // 1 day in blocks total seconds (86400 secs) in a day divided by block time (6 secs)
+        let lock_period: u32 = 28 * (86400 / 6);
+        let factor = if multiplier == 0 {
+            ((lock_period as f32) * 0.1) as u32
+        } else {
+            lock_period * multiplier as u32
+        };
+        let current_block_no = <frame_system::Pallet<T>>::block_number();
+        current_block_no.saturating_add(factor.saturated_into())
     }
 }
