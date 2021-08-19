@@ -47,7 +47,7 @@ use frame_support::{
 };
 use frame_system as system;
 use frame_system::ensure_signed;
-use orml_traits::{MultiCurrency, MultiCurrencyExtended};
+use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency};
 use polkadex_primitives::assets::AssetId;
 use sp_runtime::traits::AccountIdConversion;
 use sp_runtime::traits::CheckedDiv;
@@ -56,6 +56,7 @@ use sp_runtime::traits::Zero;
 use sp_runtime::SaturatedConversion;
 use sp_std::prelude::*;
 use frame_support::pallet_prelude::Weight;
+use sp_std::cmp::max;
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarking;
 pub mod weights;
@@ -79,7 +80,7 @@ pub trait Config: system::Config + orml_tokens::Config {
         Self::AccountId,
         CurrencyId = AssetId,
         Balance = Self::Balance,
-    >;
+    > + MultiReservableCurrency<Self::AccountId, CurrencyId = AssetId, Balance = Self::Balance>;
     /// The native currency ID type
     type NativeCurrencyId: Get<Self::CurrencyId>;
     /// The basic amount of funds that must be reserved for an Polkadex.
@@ -185,6 +186,7 @@ pub struct Voter<T: Config> {
     pub account_id : T::AccountId,
     pub unlocking_block: T::BlockNumber,
     pub votes: T::Balance,
+    pub amount : T::Balance
 }
 
 
@@ -222,8 +224,6 @@ decl_storage! {
         /// A mapping between funding round id and its InterestedParticipants
         InterestedParticipants get(fn get_interested_particpants): map hasher(identity) T::Hash => Vec<T::AccountId>;
         ///
-        WhiteListedRounds get(fn get_whitelisted_round): map hasher(identity) T::Hash => T::Hash;
-
         RoundVotes get(fn get_round_votes): map hasher(identity) T::Hash => Votes<T>;
     }
     add_extra_genesis {
@@ -468,19 +468,36 @@ decl_module! {
         }
 
          #[weight = 10000]
-        pub fn vote(origin, round_id: T::Hash, vote_multiplier: u8, approve : bool) -> DispatchResult {
+        pub fn vote(origin, round_id: T::Hash, amount: T::Balance, vote_multiplier: u8, approve : bool) -> DispatchResult {
             ensure!(vote_multiplier <=  6,  Error::<T>::PeriodError);
             let who: T::AccountId = ensure_signed(origin)?;
             ensure!(<InfoFundingRound<T>>::contains_key(&round_id), Error::<T>::FundingRoundDoesNotExist);
             let voting = <RoundVotes<T>>::get(&round_id);
-            let position_yes = voting.ayes.iter().position(|a| a.account_id == &who);
-            let position_no = voting.nays.iter().position(|a| a.account_id == &who);
+            let position_yes = voting.ayes.iter().position(|a| a.account_id == who);
+            let position_no = voting.nays.iter().position(|a| a.account_id == who);
             // Detects first vote of the member in the motion
             let is_account_voting_first_time = position_yes.is_none() && position_no.is_none();
+            ensure!(is_account_voting_first_time, Error::<T>::DuplicateVote);
 
+            //Reserves the vote amount will be later returned to user at vote.unlocking_block
+            ensure!(T::Currency::reserve(AssetId::POLKADEX, &who, amount).is_ok(),Error::<T>::FailedToMoveBalanceToReserve);
+            let voter = Voter{
+                account_id : who,
+                unlocking_block: Self::vote_multiplier_to_block_number(vote_multiplier),
+                votes: max(amount, amount.saturating_mul(vote_multiplier.saturated_into())),
+                amount
+            };
 
             <RoundVotes<T>>::mutate(&round_id, |voting| {
-
+                if approve {
+                    if position_yes.is_none() {
+                        voting.ayes.push(voter);
+                    }
+                } else {
+                    if position_no.is_none() {
+                        voting.nays.push(voter);
+                    }
+                }
             });
 
             Ok(())
@@ -567,7 +584,9 @@ decl_error! {
         /// Investor already participated in a round error
         InvestorAlreadyParticipated,
         ///
-        PeriodError
+        PeriodError,
+        DuplicateVote,
+        FailedToMoveBalanceToReserve
     }
 }
 
@@ -588,7 +607,7 @@ impl<T: Config> Module<T> {
         // 1 day in blocks total seconds (86400 secs) in a day divided by block time (6 secs)
         let lock_period: u32 = 28 * (86400 / 6);
         let factor = if multiplier == 0 {
-            ((lock_period as f32) * 0.1) as u32
+            (lock_period / 10) as u32
         } else {
             lock_period * multiplier as u32
         };
