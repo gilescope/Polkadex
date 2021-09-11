@@ -1186,6 +1186,12 @@ impl polkadex_ido::Config for Runtime {
     type DefaultVotingPeriod = DefaultVotingPeriod;
 }
 
+
+impl polkadex_offchain_ipfs::Config for Runtime {
+    type Event = Event;
+    type Currency = Currencies;
+}
+
 construct_runtime! {
     pub enum Runtime where
         Block = Block,
@@ -1235,10 +1241,11 @@ construct_runtime! {
         EthereumLightClient: snowbridge_ethereum_light_client::{Pallet, Call, Storage, Event, Config} = 39,
         ERC20PDEX: erc20_pdex_migration_pallet::{Pallet, Call, Storage, Config, Event<T>} = 40,
         PolkadexIdo: polkadex_ido::{Pallet, Call, Storage, Event<T>} = 41,
+        OffchainIPFS: polkadex_offchain_ipfs::{Pallet, Call, Storage, Event<T>} = 42,
         // IMPORTANT: Polkapool should be always at the bottom, don't add pallet after polkapool
         // otherwise it will result in in consistent state of runtime.
         // Refer: issue #261
-        Polkapool: pallet_polkapool::{Pallet, Call, Storage, Event<T>} = 42
+        Polkapool: pallet_polkapool::{Pallet, Call, Storage, Event<T>} = 43
     }
 }
 
@@ -1498,6 +1505,12 @@ impl_runtime_apis! {
 
         fn votes_stat(round_id: Hash) -> VoteStat {
             PolkadexIdo::votes_stat(round_id)
+        }
+    }
+
+    impl polkadex_offchain_ipfs::primitives::OffchainIPFSApi<Block, polkadex_offchain_ipfs::primitives::AuthorityId> for Runtime {
+        fn validator_set() -> Vec<OffchainIPFSId> {
+            OffchainIPFS::validator_set()
         }
     }
 

@@ -1,0 +1,21 @@
+[package]
+name = "offchain-ipfs-client"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+log = "0.4"
+futures = "0.3"
+codec = { version = "2.0.0", package = "parity-scale-codec", features = ["derive"] }
+sp-api = { version = "3.0.0", git = "https://github.com/paritytech/substrate" }
+sp-application-crypto = { version = "3.0.0", git = "https://github.com/paritytech/substrate" }
+sp-blockchain = { version = "3.0.0", git = "https://github.com/paritytech/substrate" }
+sp-core = { version = "3.0.0", git = "https://github.com/paritytech/substrate" }
+sp-keystore = { version = "0.9.0", git = "https://github.com/paritytech/substrate" }
+sp-runtime = { version = "3.0.0", git = "https://github.com/paritytech/substrate" }
+sc-client-api = { version = "3.0.0", git = "https://github.com/paritytech/substrate" }
+sc-keystore = { version = "3.0.0", git = "https://github.com/paritytech/substrate" }
+sp-inherents = { version = "3.0.0", git = "https://github.com/paritytech/substrate" }
+offchain-ipfs-primitives = { path = "../../offchain-ipfs-primitives" }

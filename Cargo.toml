@@ -4,14 +4,9 @@ panic = 'unwind'
 [workspace]
 members = [
     'node',
-    'pallets/ocex',
-    'pallets/fungible-assets',
-    'pallets/pdex-migration',
-    'pallets/Polkadex_Ido',
-    'pallets/polkapool',
+    'pallets/*',
+    'client/offchain-ipfs-client',
     'runtime',
-    'pallets/Polkadex_Ido/rpc',
-    'pallets/Polkadex_Ido/rpc/runtime-api',
-    'pallets/Polkadex_Ido/common',
     'contracts/uniswap_v2',
+    'offchain-ipfs-primitives'
 ]
